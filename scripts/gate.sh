@@ -36,6 +36,9 @@ run_tests() { # channel
     julia +"$1" --startup-file=no --project=. -e 'using Pkg; Pkg.test()'
 }
 
+step "standards (W3C EXI 1.0, fetched, not committed)"
+scripts/fetch-standards.sh --check
+
 if [[ $QUICK -eq 0 ]]; then
     export JEXI_REQUIRE_JUDGES=1
     lts_version="$(julia +"$LTS" --startup-file=no -e 'print(VERSION)')"

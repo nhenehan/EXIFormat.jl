@@ -5,7 +5,6 @@
 #   interop/      EXIficient 1.0.7 bytes, decoded events and grammar dumps
 #                 (rexi's scripts/gen-fixtures.sh made them; rexi only carries
 #                 them), verified against manifest.tsv
-#   spec/         the Appendix C options schema
 #   whitespace/   rexi-xml's whitespace schemas
 #   listings/     `rexi dump-grammar` of each interop case, which the schema
 #                 compiler must reproduce exactly
@@ -25,7 +24,6 @@ DST="$ROOT/test/fixtures"
 # published directory -> source directory in the rexi checkout
 COPIES=(
     "interop:crates/rexi-tests/fixtures/interop"
-    "spec:crates/rexi-tests/fixtures/spec"
     "whitespace:crates/rexi-xml/tests/whitespace"
 )
 

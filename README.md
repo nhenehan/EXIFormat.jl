@@ -179,6 +179,7 @@ precompiles into the package that includes it.
 
 ```bash
 scripts/fetch-third-party.sh --build   # exip (exipd, EXIficient oracle) and rexi, pinned
+scripts/fetch-standards.sh [--check]   # W3C EXI 1.0 (dated REC) and its Appendix C schema, by sha256
 scripts/sync-fixtures.sh [--check]     # fixtures and rexi's grammar listings, from the pinned rexi
 scripts/gen-tables.sh [--check]        # static tables in test/generated
 scripts/gate.sh [--quick]              # everything a commit must pass

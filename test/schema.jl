@@ -4,6 +4,20 @@ import JExi as J
 
 const FIX = joinpath(@__DIR__, "fixtures")
 
+# The standards cache scripts/fetch-standards.sh fills: $JEXI_STANDARDS, else
+# ${XDG_CACHE_HOME:-~/.cache}/jexi/standards. Standards are linked, not committed.
+function standard_path(file)
+    dir = get(ENV, "JEXI_STANDARDS", "")
+    if isempty(dir)
+        cache = get(ENV, "XDG_CACHE_HOME", "")
+        isempty(cache) && (cache = joinpath(homedir(), ".cache"))
+        dir = joinpath(cache, "jexi", "standards")
+    end
+    path = joinpath(dir, file)
+    isfile(path) || error("$path is missing: run scripts/fetch-standards.sh")
+    return path
+end
+
 function interop_cases()
     cases = []
     for line in eachline(joinpath(FIX, "interop", "cases.tsv"))
@@ -74,7 +88,8 @@ end
     end
 
     @testset "Appendix C schema writes the options documents the same bytes" begin
-        compiled = J.compile_files(joinpath(FIX, "spec", "exi-options.xsd"))
+        # EXI 1.0 Appendix C, https://www.w3.org/TR/exi/#optionsSchema
+        compiled = J.compile_files(standard_path("exi-options.xsd"))
         for o in (J.strict_options(), J.strict_options(schema_id = "a"),
             J.strict_options(schema_id = "a", alignment = J.ALIGN_BYTE_ALIGNED),
             J.strict_options(schema_id = "a", value_max_length = 12, value_partition_capacity = 66),

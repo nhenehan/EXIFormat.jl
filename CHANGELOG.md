@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Standards are linked, not committed: the copy of the EXI 1.0 Appendix C
+  options schema is gone (`sync-fixtures.sh` no longer copies it from rexi).
+  `scripts/fetch-standards.sh` downloads the dated W3C Recommendation into
+  `~/.cache/jexi/standards` and takes the schema out of it, both checked by
+  sha256 against `standards.lock`. The tests and `gen-tables.sh` read it there
+  (the generated tables are unchanged); the gate checks it.
+
 ## 0.2.0
 
 - The decoder checks the stream's `schemaId` option against the tables'

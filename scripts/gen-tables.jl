@@ -1,5 +1,7 @@
 # Regenerates (or, with --check, verifies) the static grammar tables in
-# test/generated: one module per interop fixture, plus the Appendix C schema.
+# test/generated: one module per interop fixture, plus the EXI 1.0 Appendix C
+# schema (https://www.w3.org/TR/exi/#optionsSchema), which
+# scripts/fetch-standards.sh takes out of the W3C Recommendation.
 # Run through scripts/gen-tables.sh.
 using JExi
 
@@ -17,7 +19,10 @@ for line in eachline(joinpath(FIX, "interop", "cases.tsv"))
     xsds = [joinpath(FIX, "interop", f[3]); [joinpath(FIX, "interop", x) for x in imports]]
     push!(jobs, (replace(String(f[1]), '-' => '_'), camel(f[1]), "GRAMMARS", xsds))
 end
-push!(jobs, ("exi_options", "ExiOptions", "EXI_OPTIONS", [joinpath(FIX, "spec", "exi-options.xsd")]))
+const STANDARDS = readchomp(`$(joinpath(ROOT, "scripts", "fetch-standards.sh")) --print-dir`)
+options_xsd = joinpath(STANDARDS, "exi-options.xsd")
+isfile(options_xsd) || error("$options_xsd is missing: run scripts/fetch-standards.sh")
+push!(jobs, ("exi_options", "ExiOptions", "EXI_OPTIONS", [options_xsd]))
 
 ok = true
 for (file, mod, name, xsds) in jobs
