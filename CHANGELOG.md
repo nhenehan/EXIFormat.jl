@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `xsi:type` that names no type in the schema is no longer an error. The name is
+  written, and the element keeps the grammar it has
+  ([EXI 8.5.4.4.2](https://www.w3.org/TR/exi/#addingProductionsStrict)); decoding
+  does the same. An `xsi:type` value whose prefix is not declared gives uri `""`
+  and the whole value as the local name
+  ([EXI 7.1.7](https://www.w3.org/TR/exi/#encodingQName)). Both match EXIficient
+  and rexi 0.3.1.
 - Standards are linked, not committed: the copy of the EXI 1.0 Appendix C
   options schema is gone (`sync-fixtures.sh` no longer copies it from rexi).
   `scripts/fetch-standards.sh` downloads the dated W3C Recommendation into

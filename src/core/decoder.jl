@@ -186,12 +186,9 @@ function step_escape!(dec::Decoder, f::Frame)
     if code2 == xsi_type_code(f)
         q = read_qname!(dec.strings, dec.inp)
         t = find_type(g, q)
-        if t === nothing
-            n = qname(dec.strings, q)
-            throw(SchemaError("xsi:type names unknown type $(n === nothing ? "?" : qname_text(n...))"))
-        end
-        # No escapes after a cast: see `xsi_type!` of the encoder.
-        set_top!(dec, cast_to(f, grammar_start_rule(g, gtype(g, t).grammar), t))
+        # No such type: keep the grammar, as the encoder does. Otherwise there
+        # are no escapes after a cast: see `xsi_type!` of the encoder.
+        t === nothing || set_top!(dec, cast_to(f, grammar_start_rule(g, gtype(g, t).grammar), t))
         dec.qname = q
         return EV_XSI_TYPE
     elseif code2 == xsi_nil_code(f)

@@ -179,15 +179,23 @@ because that character may take more than one byte (`pé:r`).
     return EMPTY_SUB, name
 end
 
-function resolve(scan::XmlScan, prefix::SubStr, what::SubStr)
+"""
+The namespace bound to `prefix`, or `nothing` when it is undeclared. With no
+default namespace declared, the empty prefix gives no namespace.
+"""
+function lookup_prefix(scan::XmlScan, prefix::SubStr)
     prefix == "xml" && return XML_NS_SUB
     p = scan.ns_prefix
     for i in length(p):-1:1
         @inbounds p[i] == prefix && return scan.ns_uri[i]
     end
-    # No default namespace declared: names are in no namespace.
-    isempty(prefix) && return EMPTY_SUB
-    throw(XmlSyntaxError("undeclared namespace prefix '$prefix' in '$what'"))
+    return isempty(prefix) ? EMPTY_SUB : nothing
+end
+
+function resolve(scan::XmlScan, prefix::SubStr, what::SubStr)
+    u = lookup_prefix(scan, prefix)
+    u === nothing && throw(XmlSyntaxError("undeclared namespace prefix '$prefix' in '$what'"))
+    return u
 end
 
 is_space_byte(b::UInt8) = b == UInt8(' ') || b == UInt8('\t') || b == UInt8('\n') || b == UInt8('\r')
@@ -284,7 +292,11 @@ function start_tag!(sink, scan::XmlScan, tag::SubStr)
     if xsi_type != 0
         v = strip_space(values[xsi_type])
         p, l = split_qname(v)
-        sink_xsi_type!(sink, resolve(scan, p, v), l)
+        # A prefix with no namespace in scope is not an error here: the uri is ""
+        # and the local name is the whole value, prefix and all
+        # (https://www.w3.org/TR/exi/#encodingQName). EXIficient does the same.
+        u = lookup_prefix(scan, p)
+        u === nothing ? sink_xsi_type!(sink, EMPTY_SUB, v) : sink_xsi_type!(sink, u, l)
     end
     xsi_nil != 0 && sink_xsi_nil!(sink, parse_nil(values[xsi_nil]))
     pos = scan.attr_pos

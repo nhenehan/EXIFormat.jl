@@ -238,7 +238,10 @@ end
     xsi_type!(enc, uri, local)
 
 Writes `xsi:type`: the escape codes, then the type's QName through the string
-table, and switches the element to that type's grammar. As in EXIficient, the
+table, and switches the element to that type's grammar. A name that is not a
+type in the schema is written all the same, and the element keeps its grammar
+(https://www.w3.org/TR/exi/#addingProductionsStrict switches only to a type that
+exists); EXIficient does the same. As in EXIficient, the
 target type's own grammar is used, which has no escapes left
 (https://github.com/EXIficient/exificient-grammars/blob/9baa044237f649a65ae4190aed75081c75c86a16/src/main/java/com/siemens/ct/exi/grammars/XSDGrammarsBuilder.java#L1474-L1499).
 """
@@ -253,7 +256,7 @@ function xsi_type!(enc::Encoder, uri::AbstractString, local_name::AbstractString
     emit_code!(enc, code2, second_level_width(f))
     q = write_qname!(enc.strings, enc.out, uri, local_name)
     t = find_type(g, q)
-    t === nothing && throw(SchemaError("xsi:type names unknown type $(qname_text(uri, local_name))"))
+    t === nothing && return enc  # no such type: keep the grammar
     set_top!(enc, cast_to(f, grammar_start_rule(g, gtype(g, t).grammar), t))
     return enc
 end

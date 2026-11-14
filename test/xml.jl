@@ -300,7 +300,10 @@ end
         end
         @test clean_error("""<pé:r>x</pé:r>""")          # undeclared prefix
         @test clean_error("""<r xmlns="urn:u">&é;</r>""") # unknown entity
-        @test clean_error("""<r xmlns="urn:u" xmlns:xsi="$(J.XSI_NS)" xsi:type="é ">x</r>""")
+        # An unknown type is not an error (see "xsi:type naming no known type").
+        @test J.XsiType("urn:u", "é") in J.xml_events("""<r xmlns="urn:u" xmlns:xsi="$(J.XSI_NS)" xsi:type="é ">x</r>""")
+        @test J.XsiType("", "pé:x") in J.xml_events("""<r xmlns="urn:u" xmlns:xsi="$(J.XSI_NS)" xsi:type="pé:x">x</r>""")
+        @test J.encode_xml("""<r xmlns="urn:u" xmlns:xsi="$(J.XSI_NS)" xsi:type="pé:x">x</r>""", g) isa Vector{UInt8}
         # The same in the schema reader.
         g2 = J.compile_string("""<xé:schema xmlns:xé="http://www.w3.org/2001/XMLSchema"
             targetNamespace="urn:u"><xé:element name="r" type="xé:string"/></xé:schema>""")
@@ -418,4 +421,40 @@ end
         @test_throws J.LimitError(:string_bytes, 11) J.decode_events(b, g; options = O, limits = lim(max_string_bytes = 11))
         @test length(J.decode_events(b, g; options = O, limits = lim(max_string_bytes = 12))) == 13
     end
+
+    # Ported from rexi-xml/tests/xsi_type_unknown.rs. A name that is not a type is
+    # written all the same and the element keeps its grammar
+    # (https://www.w3.org/TR/exi/#addingProductionsStrict); an undeclared prefix
+    # gives uri "" and the whole value as the local name
+    # (https://www.w3.org/TR/exi/#encodingQName). EXIficient does both the same way.
+    @testset "xsi:type naming no known type" begin
+        # `a` has type `T`, and `U` extends `T`, so `a` takes `xsi:type`.
+        t = J.compile_string("""<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <xs:complexType name="T">
+            <xs:sequence><xs:element name="n" type="xs:boolean"/></xs:sequence>
+          </xs:complexType>
+          <xs:complexType name="U">
+            <xs:complexContent><xs:extension base="T"/></xs:complexContent>
+          </xs:complexType>
+          <xs:element name="a" type="T"/>
+        </xs:schema>""")
+        xsi = "http://www.w3.org/2001/XMLSchema-instance"
+        round_trip(xml, o) = (b = J.encode_xml(xml, t; options = o);
+            @test lexical(J.decode_events(b, t; options = o)) == J.xml_events(xml); b)
+        nope = """<a xmlns:xsi="$xsi" xsi:type="Nope"><n>true</n></a>"""
+        # SE(a) 0, escape 1, uri "" 001, "Nope" as a miss (length + 1 = 5, then
+        # each code point), SE(n) 0 in a's own grammar, true 1. EXIficient 1.0.7
+        # writes the same bytes; rexi pins the bits in its test.
+        @test hexstr(J.encode_xml(nope, t)) == "80482a737b832a"
+        for o in (J.strict_options(), J.strict_options(alignment = J.ALIGN_BYTE_ALIGNED))
+            round_trip(nope, o)
+        end
+        undeclared = """<a xmlns:xsi="$xsi" xsi:type="none:any"><n>true</n></a>"""
+        @test J.XsiType("", "none:any") in J.xml_events(undeclared)
+        b = round_trip(undeclared, J.strict_options())
+        @test occursin("xsi:type=\"none:any\"", J.decode_to_xml(b, t; options = J.strict_options()))
+        # A known type still switches grammar.
+        round_trip("""<a xmlns:xsi="$xsi" xsi:type="U"><n>false</n></a>""", J.strict_options())
+    end
+
 end
