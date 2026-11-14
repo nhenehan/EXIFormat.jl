@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1
 
 - **New name: EXIFormat** (it was JExi up to 0.2.0), so that it can be added to
   Julia's General registry. Write `using EXIFormat` and `EXIFormat.encode_xml`.
