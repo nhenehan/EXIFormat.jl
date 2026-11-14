@@ -12,7 +12,7 @@ twin in `rexi/examples/basics` that prints exactly the same output. rexi's
 | Strict options | `EXIFormat.strict_options()` | `ExiOptions::strict()` |
 | Change an option | `strict_options(; alignment = EXIFormat.ALIGN_BYTE_ALIGNED)` | `.with_alignment(Alignment::ByteAligned)` |
 | Header settings | `HeaderConfig(; cookie = true, include_options = true)` | `HeaderConfig::new().with_cookie(true).with_include_options(true)` |
-| XML to EXI | `EXIFormat.encode_xml(xml, tables; options, header)` | `rexi_xml::encode_xml(xml, tables, &opts, header)` |
+| XML to EXI | `EXIFormat.encode_xml(xml, tables; options, header)` | `rexi_xml::encode_xml(xml.as_bytes(), tables, opts, header)` |
 | EXI to XML | `EXIFormat.decode_to_xml(bytes, tables; options)` | `rexi_xml::decode_to_xml(bytes, tables, Some(opts))` |
 | Read events | `for ev in dec` | `while let Some(ev) = dec.next_event()?` |
 | Write events | `EXIFormat.start_element!(enc, ns, name)` | `enc.start_element(ns, name)?` |
@@ -22,4 +22,5 @@ twin in `rexi/examples/basics` that prints exactly the same output. rexi's
 | Errors | Exceptions such as `UnsupportedError` | `Result` with `ExiError` |
 
 rexi also has things EXIFormat does not: `no_std` and fixed buffers for small devices,
-streaming from any `Read`/`Write`, and a C API.
+streaming from any `Read`/`Write`, a C API, and (since rexi 0.3) schema-informed
+fragments.

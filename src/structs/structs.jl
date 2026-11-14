@@ -1,33 +1,6 @@
 # Julia structs to and from EXI, driven by the schema (rexi-serde).
 #
-# The schema decides the mapping, so plain structs need few annotations:
-#
-# - Root: the type's name (`exi_name`) is matched against the global elements;
-#   `to_exi(...; root = "{uri}local")` names it explicitly.
-# - Attributes vs elements: a field is an attribute when the grammar allows
-#   AT(name) at that point, else a child element. Attributes are written in
-#   schema order whatever the field order; child elements in field order.
-# - Namespaces come from the grammar's productions; a `{uri}local` name picks
-#   one when a name is declared in several namespaces.
-# - `Vector{T}` is maxOccurs > 1, `Union{Nothing,T}` is minOccurs = 0 (`nothing`
-#   is left out; a decoded xsi:nil="true" becomes `nothing`). `Vector{UInt8}` is
-#   a binary value; a vector of simple values is an xs:list when the element's
-#   type is one.
-# - `@enum` values are xs:enumeration values (their names, after renaming).
-# - Choices: a field whose type is a `Union` of structs, or an abstract type
-#   with `exi_choices`, is written as the element named after the value's type.
-#   With `exi_xsi_type(::Type{A}) = true` the element keeps its name and
-#   xsi:type names the value's type instead.
-# - A field named `"\$text"` (or `"\$value"` holding a simple value) is the
-#   element's character content; `"\$value"` holding choices takes the child
-#   elements no other field names, in document order.
-# - Fields named `"@xsi:type"` (a type name) and `"@xsi:nil"` (a Bool) set those.
-#
-# Names: the XML name of a field is `exi_names(T)` for it, else the field name
-# after `exi_rename_all(T)` (`:PascalCase`, `:camelCase`, `:lowercase`,
-# `:UPPERCASE`, as serde's `rename_all`). Values are passed typed where the
-# conversion is exact, else as text parsed with the schema's datatype
-# (https://www.w3.org/TR/exi/#encodingDatatypes).
+# The mapping rules are in the `to_exi` docstring below.
 
 """A struct does not fit the schema, or a decoded document does not fit a struct."""
 struct MappingError <: ExiError
@@ -415,6 +388,36 @@ end
     to_exi(x, tables; options = strict_options(), header = HeaderConfig(), root = nothing) -> Vector{UInt8}
 
 Encodes the struct `x` as an EXI document of the schema `tables`.
+`from_exi` reads one back with the same rules.
+
+The schema decides the mapping, so plain structs need few annotations:
+
+- Root: the type's name (`exi_name`) is matched against the global elements;
+  `to_exi(...; root = "{uri}local")` names it explicitly.
+- Attributes vs elements: a field is an attribute when the grammar allows
+  AT(name) at that point, else a child element. Attributes are written in
+  schema order whatever the field order; child elements in field order.
+- Namespaces come from the grammar's productions; a `{uri}local` name picks
+  one when a name is declared in several namespaces.
+- `Vector{T}` is maxOccurs > 1, `Union{Nothing,T}` is minOccurs = 0 (`nothing`
+  is left out; a decoded xsi:nil="true" becomes `nothing`). `Vector{UInt8}` is
+  a binary value; a vector of simple values is an xs:list when the element's
+  type is one.
+- `@enum` values are xs:enumeration values (their names, after renaming).
+- Choices: a field whose type is a `Union` of structs, or an abstract type
+  with `exi_choices`, is written as the element named after the value's type.
+  With `exi_xsi_type(::Type{A}) = true` the element keeps its name and
+  xsi:type names the value's type instead.
+- A field named `"\$text"` (or `"\$value"` holding a simple value) is the
+  element's character content; `"\$value"` holding choices takes the child
+  elements no other field names, in document order.
+- Fields named `"@xsi:type"` (a type name) and `"@xsi:nil"` (a Bool) set those.
+
+Names: the XML name of a field is `exi_names(T)` for it, else the field name
+after `exi_rename_all(T)` (`:PascalCase`, `:camelCase`, `:lowercase`,
+`:UPPERCASE`, as serde's `rename_all`). Values are passed typed where the
+conversion is exact, else as text parsed with the schema's datatype
+(https://www.w3.org/TR/exi/#encodingDatatypes).
 """
 function to_exi(x, tables::GrammarSet; options::ExiOptions = strict_options(), header::HeaderConfig = HeaderConfig(),
     root::Union{Nothing,AbstractString} = nothing)

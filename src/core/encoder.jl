@@ -134,6 +134,7 @@ end
 @inline fl_width(enc::Encoder, f::Frame) =
     ceil_log2(Int(@inbounds enc.rt.rule_len[Int(f.rule) + 1]) + (escape_count(f) > 0 ? 1 : 0))
 
+"""Writes `SD`, the start of the document. Call it first, once."""
 function start_document!(enc::Encoder)
     enc.cursor == CUR_DOCUMENT || throw(mismatch(enc, "SD"))
     # Document : SD DocContent. One production, so its code takes zero bits.
@@ -141,6 +142,7 @@ function start_document!(enc::Encoder)
     return enc
 end
 
+"""Writes `ED`, the end of the document, after the root element has ended."""
 function end_document!(enc::Encoder)
     flush_chars!(enc, false)
     enc.cursor == CUR_DOC_END || throw(mismatch(enc, "ED"))
@@ -206,6 +208,7 @@ function attribute!(enc::Encoder, uri::AbstractString, local_name::AbstractStrin
     return attribute_resolved!(enc, q, uri, local_name, xml_space, value)
 end
 
+"""Writes an attribute by its name's id in the tables, which skips the name lookup."""
 function attribute!(enc::Encoder, q::QNameId, value)
     g = enc.tables
     xml_space = q.uri == URI_XML && uri_str(g, q.uri) == XML_NS && local_name_str(g, q) == "space"
@@ -305,6 +308,7 @@ function pend_text!(enc::Encoder, bytes::AbstractVector{UInt8}, n::Int)
     return nothing
 end
 
+"""Writes `EE`, the end of the element opened last."""
 function end_element!(enc::Encoder)
     flush_chars!(enc, true)
     g = enc.tables

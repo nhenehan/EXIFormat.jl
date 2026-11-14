@@ -4,16 +4,15 @@ In this chapter you'll add EXIFormat to a project and run the examples.
 
 ## Add EXIFormat to your project
 
-EXIFormat is not in the Julia registry yet, so add it from GitHub. It needs
-Julia 1.10 or newer.
+EXIFormat needs Julia 1.10 or newer.
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/nhenehan/jexi", rev = "v0.2.0")
+Pkg.add("EXIFormat")
 ```
 
-To work on EXIFormat itself, use a local copy instead:
-`Pkg.develop(path = "path/to/jexi")`.
+To work on EXIFormat itself, clone it and use the clone instead:
+`Pkg.develop(path = "path/to/EXIFormat.jl")`.
 
 Then:
 
@@ -26,10 +25,12 @@ where a name comes from.
 
 ## Run the examples
 
-The examples live in `examples/basics`, with their own `Project.toml`. From the
-jexi folder:
+The examples live in `examples/basics` of the repository, with their own
+`Project.toml`. Clone the repository first; the copy that `Pkg.add` installs is
+read-only.
 
 ```bash
+git clone https://github.com/nhenehan/EXIFormat.jl && cd EXIFormat.jl
 julia --project=examples/basics -e 'using Pkg; Pkg.develop(path=".")'   # once
 julia --project=examples/basics examples/basics/roundtrip.jl
 julia --project=examples/basics examples/basics/run-all.jl          # every example

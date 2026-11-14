@@ -5,7 +5,9 @@
 """The parent type of every event."""
 abstract type Event end
 
+"""`SD`: the start of the document."""
 struct StartDocument <: Event end
+"""`ED`: the end of the document."""
 struct EndDocument <: Event end
 
 """`SE`: the start of an element."""

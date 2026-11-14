@@ -40,8 +40,11 @@ flowchart LR
 | `EXIFormat.exi_names(::Type{T})`, `EXIFormat.exi_rename_all` | Match Julia names to XML names |
 | `@enum` | An `xs:enumeration` value |
 | A `Union` of structs, or `EXIFormat.exi_choices` | A choice between elements |
+| An abstract type with `EXIFormat.exi_xsi_type(::Type{A}) = true` | An element whose subtype is named by `xsi:type` |
+| A field named `"$text"` or `"$value"` | The element's text, or a child chosen by its type |
+| A field named `"@xsi:type"` or `"@xsi:nil"` | The `xsi:type` name, or an empty `xsi:nil` element |
 
-The full list of rules is at the top of `src/structs/structs.jl`. Encoding and
+The full list of rules is in the `EXIFormat.to_exi` docstring (`?EXIFormat.to_exi`). Encoding and
 decoding are then one call each:
 
 ```julia

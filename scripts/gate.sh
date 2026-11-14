@@ -10,14 +10,14 @@
 # EXIFORMAT_REQUIRE_JUDGES, so tests that need them fail instead of skipping.
 # Run scripts/fetch-third-party.sh --build first.
 #
-# Env: EXIFORMAT_JULIA_LTS      juliaup channel of the oldest Julia (default release;
-#                          it must be a 1.10.x)
+# Env: EXIFORMAT_JULIA_LTS      juliaup channel of the oldest Julia (default lts;
+#                               it must be a 1.10.x)
 #      EXIFORMAT_JULIA_CURRENT  juliaup channel of the current Julia (default 1.12)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-LTS="${EXIFORMAT_JULIA_LTS:-release}"
+LTS="${EXIFORMAT_JULIA_LTS:-lts}"
 CURRENT="${EXIFORMAT_JULIA_CURRENT:-1.12}"
 
 QUICK=0

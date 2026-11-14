@@ -5,19 +5,18 @@ Native Julia implementation of W3C Efficient XML Interchange (EXI) 1.0, Second
 Edition ([spec](https://www.w3.org/TR/exi/)), a compact binary form of XML. It
 follows the design of rexi, the Rust implementation.
 
-The setup it aims at first is: schema-informed (the grammars come from an XML
-Schema, [EXI 8.5](https://www.w3.org/TR/exi/#informedGrammars)), strict (only
-what the schema declares may appear), bit-packed (no padding between items),
-with no `\$EXI` cookie, and with the options usually agreed outside the stream.
-Anything else is either supported or refused with an `UnsupportedError`.
+EXIFormat supports schema-informed (the grammars come from an XML Schema,
+[EXI 8.5](https://www.w3.org/TR/exi/#informedGrammars)), strict (only what the
+schema declares may appear) EXI 1.0: bit-packed or byte-aligned, with or
+without the `\$EXI` cookie, and with the options in the header or agreed
+outside the stream. Anything else is refused with an `UnsupportedError`.
 Nothing is quietly encoded in some "close enough" way.
 
 Restricted character sets
 ([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet)) are written as
 EXI says: when a string type's `xs:pattern` allows only a small alphabet, each
 character is a short index into it. A pattern EXIFormat cannot parse leaves the
-alphabet unknown, so values of that type (kind `K_RESTRICTED_STRING` with no
-alphabet) are refused rather than guessed; the schema still compiles, and
+alphabet unknown, so values of that type are refused rather than guessed; the schema still compiles, and
 documents that do not use the type work.
 
 The decoder is safe to point at untrusted bytes: `DecodeLimits` caps the

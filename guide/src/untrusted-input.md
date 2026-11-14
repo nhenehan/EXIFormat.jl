@@ -58,7 +58,7 @@ too, on by default:
 - Only regular files, at most 16 MiB each. No URLs, pipes or devices.
 - One type's content may grow to at most 100,000 grammar rules
   (`max_grammar_size`). A `maxOccurs` of 10,000 makes about 20,000; tidying a
-  grammar is also capped at 100 productions per allowed rule, so
+  grammar may make at most 100 × `max_grammar_size` productions in total, so
   `maxOccurs="20000"` is refused. Going over gives "schema too large".
 - A group that contains itself is a "circular group reference". A loop through
   a global element or a named type is fine.

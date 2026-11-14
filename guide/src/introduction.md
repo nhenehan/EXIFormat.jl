@@ -45,6 +45,7 @@ can read the two languages side by side.
 
 EXIFormat works in [strict](glossary.md#strict-non-strict), schema-informed mode
 only. That is the most compact form EXI offers. Compression, schema-less
-streams, non-strict mode and the "preserve" options (comments, prefixes and so
-on) are refused with a clear error. EXIFormat never quietly does something close
+streams, non-strict mode, the "preserve" options (comments, prefixes and so
+on), wildcards (`xs:any`, `xs:anyAttribute`) and fragments are refused with a
+clear error. EXIFormat never quietly does something close
 enough instead.

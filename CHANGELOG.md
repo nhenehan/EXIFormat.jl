@@ -11,14 +11,13 @@
   ([EXI 8.5.4.4.2](https://www.w3.org/TR/exi/#addingProductionsStrict)); decoding
   does the same. An `xsi:type` value whose prefix is not declared gives uri `""`
   and the whole value as the local name
-  ([EXI 7.1.7](https://www.w3.org/TR/exi/#encodingQName)). Both match EXIficient
-  and rexi 0.3.1.
-- Standards are linked, not committed: the copy of the EXI 1.0 Appendix C
-  options schema is gone (`sync-fixtures.sh` no longer copies it from rexi).
-  `scripts/fetch-standards.sh` downloads the dated W3C Recommendation into
-  `~/.cache/jexi/standards` and takes the schema out of it, both checked by
-  sha256 against `standards.lock`. The tests and `gen-tables.sh` read it there
-  (the generated tables are unchanged); the gate checks it.
+  ([EXI 7.1.7](https://www.w3.org/TR/exi/#encodingQName)). Both match
+  EXIficient; rexi made the same change in 0.3.1.
+- `Pkg.test` works without the downloaded W3C text: the one test that needs it
+  is skipped with a warning.
+- For developers: the EXI options schema is no longer in the repository.
+  `scripts/fetch-standards.sh` downloads the dated W3C Recommendation and takes
+  the schema out of it, checked by sha256 against `standards.lock`.
 
 ## 0.2.0
 
@@ -35,9 +34,9 @@
 - Restricted character sets
   ([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet)) are encoded
   and decoded instead of refused. The alphabet a string type's patterns allow
-  is kept in the grammar tables (the kind's `set` is its `StrIdx`), and each
-  character of a string-table miss is written as an n-bit index into it, or
-  as the escape index and the code point. The bytes equal EXIficient 1.0.7's,
+  is kept in the grammar tables, and each character of a new string value is
+  written as an n-bit index into it, or as the escape index and the code
+  point. The bytes equal EXIficient 1.0.7's,
   bit-packed and byte-aligned, on new test vectors (an ISO 3779 VIN pattern,
   escaped characters, non-ASCII alphabets, the empty alphabet, string-table
   hits, list items, `xs:token`, and two alphabets in one document). A
@@ -46,7 +45,7 @@
 - A restricted string whose pattern does not parse still has no alphabet, and
   its values are still refused with
   `UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
-- `restricted_string_kind(ws, alphabet)` takes the alphabet's `StrIdx`, and
+- `restricted_string_kind(ws, alphabet)` takes the alphabet, and
   `SchemaGen` writes it. Tables generated before this change hold restricted
   kinds with no alphabet, which behave as before (refused); regenerate them.
 

@@ -2,8 +2,8 @@
 #
 # Fields become attributes or child elements, depending on what the schema says,
 # and in the schema's order. `Union{Nothing,T}` is an optional item and a
-# `Vector` is a repeated one. The full rules are in the docstring at the top of
-# jexi/src/structs/structs.jl.
+# `Vector` is a repeated one. The full rules are in the
+# `EXIFormat.to_exi` docstring (`?EXIFormat.to_exi` in the REPL).
 #
 # Rust version: rexi/examples/basics/src/bin/structs.rs.
 

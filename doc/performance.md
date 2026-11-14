@@ -1,7 +1,8 @@
-# Performance (0.1)
+# Performance (measured 2026-11-05, before 0.2.0)
 
 Measured on 2026-11-05 on an AMD Ryzen 7 7840U, Linux 7.2.6, Julia 1.12.7,
-with the rexi-interop harness: EXIFormat e336de8, and rexi b2ab2a8 as a release
+with the [rexi-interop](https://github.com/nhenehan/rexi-interop) harness:
+EXIFormat (then called JExi) e336de8, and rexi b2ab2a8 as a release
 build with rustc 1.99. Each library times itself in-process: a warm-up of at
 least 2000 runs and 3 s, then 2000 timed runs. The tables give the median in
 µs. Schema compilation is not included. The harness's `reports/latest.md` has

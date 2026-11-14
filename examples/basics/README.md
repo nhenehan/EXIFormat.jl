@@ -14,7 +14,8 @@ same output, so you can compare the two side by side.
 | 6 | [`prebuilt_tables.jl`](prebuilt_tables.jl) | `prebuilt_tables.rs` | Tables built ahead of time |
 
 All of them use [`data/order.xml`](data/order.xml) and [`data/order.xsd`](data/order.xsd).
-From a clone of EXIFormat.jl:
+From a clone of EXIFormat.jl
+(`git clone https://github.com/nhenehan/EXIFormat.jl && cd EXIFormat.jl`):
 
 ```bash
 julia --project=examples/basics -e 'using Pkg; Pkg.develop(path=".")'   # once
