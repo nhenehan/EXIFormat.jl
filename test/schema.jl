@@ -5,7 +5,9 @@ import EXIFormat as J
 const FIX = joinpath(@__DIR__, "fixtures")
 
 # The standards cache scripts/fetch-standards.sh fills: $EXIFORMAT_STANDARDS, else
-# ${XDG_CACHE_HOME:-~/.cache}/exiformat/standards. Standards are linked, not committed.
+# ${XDG_CACHE_HOME:-~/.cache}/exiformat/standards. The W3C text is never committed.
+# A missing file returns `nothing`, so the test that needs it is skipped, unless
+# EXIFORMAT_REQUIRE_JUDGES is set (the gate sets it).
 function standard_path(file)
     dir = get(ENV, "EXIFORMAT_STANDARDS", "")
     if isempty(dir)
@@ -14,8 +16,10 @@ function standard_path(file)
         dir = joinpath(cache, "exiformat", "standards")
     end
     path = joinpath(dir, file)
-    isfile(path) || error("$path is missing: run scripts/fetch-standards.sh")
-    return path
+    isfile(path) && return path
+    haskey(ENV, "EXIFORMAT_REQUIRE_JUDGES") && error("$path is missing: run scripts/fetch-standards.sh")
+    @warn "skipping a test: $path is missing (run scripts/fetch-standards.sh)"
+    return nothing
 end
 
 function interop_cases()
@@ -89,8 +93,10 @@ end
 
     @testset "Appendix C schema writes the options documents the same bytes" begin
         # EXI 1.0 Appendix C, https://www.w3.org/TR/exi/#optionsSchema
-        compiled = J.compile_files(standard_path("exi-options.xsd"))
-        for o in (J.strict_options(), J.strict_options(schema_id = "a"),
+        path = standard_path("exi-options.xsd")
+        compiled = path === nothing ? nothing : J.compile_files(path)
+        compiled === nothing && @test_skip false
+        compiled === nothing || for o in (J.strict_options(), J.strict_options(schema_id = "a"),
             J.strict_options(schema_id = "a", alignment = J.ALIGN_BYTE_ALIGNED),
             J.strict_options(schema_id = "a", value_max_length = 12, value_partition_capacity = 66),
             J.strict_options(schema_id = J.SCHEMA_ID_NIL), J.strict_options(schema_id = ""),
