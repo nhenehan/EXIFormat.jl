@@ -25,7 +25,7 @@ const SCHEMA_ID_NIL = SchemaIdNil()
 
 The EXI options. `schema_id` is `nothing` (absent), [`SCHEMA_ID_NIL`](@ref), or
 a string (`""` is the empty schemaId). The two value limits are `nothing` when
-unbounded. [`strict_options`](@ref) gives the profile JExi targets.
+unbounded. [`strict_options`](@ref) gives the profile EXIFormat targets.
 """
 Base.@kwdef struct ExiOptions
     alignment::Alignment = ALIGN_BIT_PACKED
@@ -70,7 +70,7 @@ a string), and throws a [`SchemaIdError`](@ref) if they do not match:
 
 - absent (`nothing`): the schema was agreed out of band; nothing to check.
 - `xsi:nil="true"` (no schema, built-in grammars): always refused, because
-  JExi's tables are schema-informed.
+  EXIFormat's tables are schema-informed.
 - `""` (built-in types only) and any other value: the tables' id must be
   exactly that string. Tables with no id are refused, because a stream that
   names its schema cannot be checked against tables that do not.
@@ -93,7 +93,7 @@ end
 """
     validate_options(opts)
 
-Throws for any option JExi does not support (an [`UnsupportedError`](@ref)) and
+Throws for any option EXIFormat does not support (an [`UnsupportedError`](@ref)) and
 for combinations the spec forbids (a [`HeaderError`](@ref)).
 """
 function validate_options(o::ExiOptions)

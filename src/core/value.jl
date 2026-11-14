@@ -3,7 +3,7 @@
 #
 # rexi has one `Value` enum. Here each kind is its own Julia type:
 #
-# | rexi            | JExi                                          |
+# | rexi            | EXIFormat                                          |
 # |-----------------|-----------------------------------------------|
 # | Lexical(&str)   | `Lexical`: XML text the datatype must parse   |
 # | String(&str)    | `String`                                      |

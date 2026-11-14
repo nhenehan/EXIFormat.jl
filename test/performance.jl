@@ -1,7 +1,7 @@
 # Allocation budgets and type stability (rexi-tests/tests/static_alloc.rs and
 # setup_cost.rs). The budgets have some headroom over what
 # 0.1 measures, so a regression trips them; doc/performance.md has the numbers.
-import JExi as J
+import EXIFormat as J
 
 const PERF_G = OrderComplex.GRAMMARS
 const PERF_O = J.strict_options()

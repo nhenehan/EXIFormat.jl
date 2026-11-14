@@ -1,6 +1,6 @@
 [book]
-title = "JExi User Guide"
-description = "Encode and decode EXI from Julia with JExi, one example at a time."
+title = "EXIFormat User Guide"
+description = "Encode and decode EXI from Julia with EXIFormat, one example at a time."
 authors = ["Nathan Henehan"]
 language = "en"
 src = "src"

@@ -7,7 +7,7 @@
 #
 # Rust version: rexi/examples/basics/src/bin/structs.rs.
 
-import JExi
+import EXIFormat
 using Printf
 include("common.jl")
 
@@ -20,8 +20,8 @@ struct Customer
     name::String
     tier::String
 end
-JExi.exi_rename_all(::Type{Customer}) = :PascalCase
-JExi.exi_names(::Type{Customer}) = (loyalty_id = "loyaltyId",)
+EXIFormat.exi_rename_all(::Type{Customer}) = :PascalCase
+EXIFormat.exi_names(::Type{Customer}) = (loyalty_id = "loyaltyId",)
 
 struct Item
     sku::String
@@ -29,8 +29,8 @@ struct Item
     quantity::Int32
     price::Float64
 end
-JExi.exi_rename_all(::Type{Item}) = :PascalCase
-JExi.exi_names(::Type{Item}) = (sku = "sku",)
+EXIFormat.exi_rename_all(::Type{Item}) = :PascalCase
+EXIFormat.exi_names(::Type{Item}) = (sku = "sku",)
 
 struct Order
     order_id::String
@@ -39,12 +39,12 @@ struct Order
     items::Vector{Item}
     notes::Union{Nothing,String}
 end
-JExi.exi_names(::Type{Order}) = (order_id = "orderId", customer = "Customer", items = "Item", notes = "Notes")
+EXIFormat.exi_names(::Type{Order}) = (order_id = "orderId", customer = "Customer", items = "Item", notes = "Notes")
 
 # ANCHOR_END: types
 
-tables = JExi.compile_files(data("order.xsd"))
-options = JExi.strict_options()
+tables = EXIFormat.compile_files(data("order.xsd"))
+options = EXIFormat.strict_options()
 
 order = Order("ORD-2026-0007", true, Customer("L-8821", "Raven Bookstore", "gold"),
     [Item("BK-001", "Distributed Systems Patterns", 2, 42.95),
@@ -52,13 +52,13 @@ order = Order("ORD-2026-0007", true, Customer("L-8821", "Raven Bookstore", "gold
     "gift-wrap requested")
 
 # The root element's name comes from the struct's name, `Order`.
-exi = JExi.to_exi(order, tables; options)
-from_xml = JExi.encode_xml(read(data("order.xml"), String), tables; options)
+exi = EXIFormat.to_exi(order, tables; options)
+from_xml = EXIFormat.encode_xml(read(data("order.xml"), String), tables; options)
 println("EXI: ", length(exi), " bytes")
 println("same bytes as encoding order.xml: ", exi == from_xml)
 
-back = JExi.from_exi(Order, exi, tables; options)
-again = JExi.to_exi(back, tables; options)
+back = EXIFormat.from_exi(Order, exi, tables; options)
+again = EXIFormat.to_exi(back, tables; options)
 println("decodes and encodes to the same bytes: ", again == exi)
 
 println("order ", back.order_id, " for ", back.customer.name, " (", back.customer.tier, ")")

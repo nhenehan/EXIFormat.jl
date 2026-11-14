@@ -8,15 +8,15 @@ do that work once and save the
 [grammar tables](glossary.md#grammar-grammar-tables):
 
 ```julia
-import JExi
-JExi.SchemaGen.generate(["examples/basics/data/order.xsd"];
+import EXIFormat
+EXIFormat.SchemaGen.generate(["examples/basics/data/order.xsd"];
     out = "examples/basics/order_tables.jl", module_name = "OrderTables")
 ```
 
 ```mermaid
 flowchart LR
     subgraph "Ahead of time"
-        X[order.xsd] --> G[JExi.SchemaGen] --> R[order_tables.jl]
+        X[order.xsd] --> G[EXIFormat.SchemaGen] --> R[order_tables.jl]
     end
     subgraph "When your program runs"
         R --> S["OrderTables.GRAMMARS"] --> E[Encoder / Decoder]
@@ -42,7 +42,7 @@ decoded with prebuilt tables: <Order xmlns="urn:rexi:interop:order" orderId="ORD
   [precompiled](glossary.md#precompile) with it.
 - **No XSD files to ship.** The schema is built into your code.
 - **Fast names.** The module also has a constant for every name, such as
-  `OrderTables.LN_ORDER`. `JExi.start_element!(enc, OrderTables.LN_ORDER)` skips
+  `OrderTables.LN_ORDER`. `EXIFormat.start_element!(enc, OrderTables.LN_ORDER)` skips
   the name lookup.
 
 In your tests, pass `check = true` to `generate`. It returns `false` if the

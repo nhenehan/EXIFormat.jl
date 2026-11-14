@@ -1,10 +1,10 @@
-# Errors shared by every layer of JExi. Each failure is its own exception type
+# Errors shared by every layer of EXIFormat. Each failure is its own exception type
 # under `ExiError`, in the place of rexi's `ExiError` enum.
 
 """
     Feature
 
-An EXI feature JExi does not implement, on purpose. When one of these shows up
+An EXI feature EXIFormat does not implement, on purpose. When one of these shows up
 it is always reported as an [`UnsupportedError`]; it is never quietly ignored.
 """
 @enum Feature::UInt8 begin
@@ -66,7 +66,7 @@ feature_name(f::Feature) = FEATURE_NAMES[f]
 """
     ExiError
 
-The parent type of every failure JExi reports.
+The parent type of every failure EXIFormat reports.
 """
 abstract type ExiError <: Exception end
 
@@ -109,7 +109,7 @@ struct SchemaError <: ExiError
     msg::String
 end
 
-"""A bug in JExi: a state that should never happen."""
+"""A bug in EXIFormat: a state that should never happen."""
 struct InternalError <: ExiError
     msg::String
 end

@@ -7,18 +7,18 @@
 #   scripts/gate.sh --quick   tests on the current Julia only
 #
 # The full gate needs the judges (exipd, exip's test data): it sets
-# JEXI_REQUIRE_JUDGES, so tests that need them fail instead of skipping.
+# EXIFORMAT_REQUIRE_JUDGES, so tests that need them fail instead of skipping.
 # Run scripts/fetch-third-party.sh --build first.
 #
-# Env: JEXI_JULIA_LTS      juliaup channel of the oldest Julia (default release;
+# Env: EXIFORMAT_JULIA_LTS      juliaup channel of the oldest Julia (default release;
 #                          it must be a 1.10.x)
-#      JEXI_JULIA_CURRENT  juliaup channel of the current Julia (default 1.12)
+#      EXIFORMAT_JULIA_CURRENT  juliaup channel of the current Julia (default 1.12)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-LTS="${JEXI_JULIA_LTS:-release}"
-CURRENT="${JEXI_JULIA_CURRENT:-1.12}"
+LTS="${EXIFORMAT_JULIA_LTS:-release}"
+CURRENT="${EXIFORMAT_JULIA_CURRENT:-1.12}"
 
 QUICK=0
 case "${1:-}" in
@@ -40,10 +40,10 @@ step "standards (W3C EXI 1.0, fetched, not committed)"
 scripts/fetch-standards.sh --check
 
 if [[ $QUICK -eq 0 ]]; then
-    export JEXI_REQUIRE_JUDGES=1
+    export EXIFORMAT_REQUIRE_JUDGES=1
     lts_version="$(julia +"$LTS" --startup-file=no -e 'print(VERSION)')"
     [[ "$lts_version" == 1.10.* ]] || {
-        echo "juliaup channel '$LTS' is Julia $lts_version, not 1.10.x (set JEXI_JULIA_LTS)" >&2
+        echo "juliaup channel '$LTS' is Julia $lts_version, not 1.10.x (set EXIFORMAT_JULIA_LTS)" >&2
         exit 1
     }
     step "tests on Julia $lts_version ($LTS)"

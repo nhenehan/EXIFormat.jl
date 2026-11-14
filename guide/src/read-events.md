@@ -46,6 +46,6 @@ end document
   integer. You don't have to parse text, because the schema already said what
   each one is.
 - **Events are yours to keep.** Each event is a plain value. You can push it
-  into a vector or pass it to `JExi.Encoder` later.
+  into a vector or pass it to `EXIFormat.Encoder` later.
 - **`next_event!` works too.** To pull events one by one yourself, call
-  `JExi.next_event!(dec)`. It gives the next event, or `nothing` at the end.
+  `EXIFormat.next_event!(dec)`. It gives the next event, or `nothing` at the end.

@@ -1,7 +1,7 @@
-using JExi
+using EXIFormat
 using Test
 
-@testset "JExi" begin
+@testset "EXIFormat" begin
     include("io.jl")
     include("datatype.jl")
     include("string_table.jl")

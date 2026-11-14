@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerates the static grammar tables in test/generated with JExi.SchemaGen.
+# Regenerates the static grammar tables in test/generated with EXIFormat.SchemaGen.
 #
 #   scripts/gen-tables.sh           write them
 #   scripts/gen-tables.sh --check   exit 1 if any is out of date

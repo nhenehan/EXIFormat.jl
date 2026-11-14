@@ -51,6 +51,6 @@ people up:
 |---|---|
 | `"gold"` | Text. A string field stores it as it is. Other types parse it, like text from an XML file. |
 | `true`, `2` | A typed value, used as it is. |
-| `JExi.Lexical("42.95")` | [Text](glossary.md#text-lexical-value) that JExi always parses with the schema's type. |
+| `EXIFormat.Lexical("42.95")` | [Text](glossary.md#text-lexical-value) that EXIFormat always parses with the schema's type. |
 
 `Lexical` makes it clear you mean "parse this". Typed values skip the parsing.

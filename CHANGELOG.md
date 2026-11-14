@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **New name: EXIFormat** (it was JExi up to 0.2.0), so that it can be added to
+  Julia's General registry. Write `using EXIFormat` and `EXIFormat.encode_xml`.
+  The command line tool is `bin/exiformat`, and its environment variables and
+  cache folder are `EXIFORMAT_*` and `~/.cache/exiformat`. Nothing else changes.
 - `xsi:type` that names no type in the schema is no longer an error. The name is
   written, and the element keeps the grammar it has
   ([EXI 8.5.4.4.2](https://www.w3.org/TR/exi/#addingProductionsStrict)); decoding

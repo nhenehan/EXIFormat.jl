@@ -1,6 +1,6 @@
 # Untrusted input
 
-In this chapter you'll see how JExi guards against hostile streams and schemas,
+In this chapter you'll see how EXIFormat guards against hostile streams and schemas,
 and how to loosen a guard when you trust the source.
 
 EXI is tiny on the wire, so a dozen bytes can ask for a huge amount of work:
@@ -32,15 +32,15 @@ flowchart LR
 
 If you trust the source, pass `limits` to `Decoder`, `decode_events`,
 `decode_to_xml` or `from_exi`. `nothing` turns one limit off, and
-`JExi.unlimited_limits()` turns all four off (use that only for input you made
+`EXIFormat.unlimited_limits()` turns all four off (use that only for input you made
 yourself):
 
 ```julia
-limits = JExi.DecodeLimits(max_depth = 1000, max_string_bytes = nothing)
-xml = JExi.decode_to_xml(bytes, tables; options, limits)
+limits = EXIFormat.DecodeLimits(max_depth = 1000, max_string_bytes = nothing)
+xml = EXIFormat.decode_to_xml(bytes, tables; options, limits)
 ```
 
-`bin/jexi decode`, `dump-events` and `bench decode` take `--max-depth N`,
+`bin/exiformat decode`, `dump-events` and `bench decode` take `--max-depth N`,
 `--max-list-items N`, `--max-integer-bits N`, `--max-string-bytes N` (0 means
 no limit) and `--no-limits`. The encoder has no limits: its input comes from
 your own program.
@@ -69,8 +69,8 @@ For a trusted set that reaches outside its folder, like UBL's `../common/...`,
 set the root (`:anywhere` allows any local file), or raise the size cap:
 
 ```julia
-opts = JExi.SchemaLoadOptions(; root = "ubl", max_grammar_size = 1_000_000)
-tables = JExi.compile_files("ubl/maindoc/Order.xsd"; load_options = opts)
+opts = EXIFormat.SchemaLoadOptions(; root = "ubl", max_grammar_size = 1_000_000)
+tables = EXIFormat.compile_files("ubl/maindoc/Order.xsd"; load_options = opts)
 ```
 
 `compile_string` takes the same `load_options`. On the command line, every command that takes `--xsd` also takes

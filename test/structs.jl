@@ -1,7 +1,7 @@
 # Struct mapping, ported from rexi-tests/tests/serde_fixtures.rs and
 # rexi-serde/tests/mapping.rs: Julia values of the interop schemas encode to
 # EXIficient's bytes in every profile and decode back to the same values.
-import JExi as J
+import EXIFormat as J
 
 # A float and a decimal field of one float type (Float32 or Float16).
 struct F32Pair{T<:AbstractFloat}

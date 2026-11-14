@@ -7,7 +7,7 @@
 #
 # Rust version: rexi/examples/basics/src/bin/read_events.rs.
 
-import JExi
+import EXIFormat
 include("common.jl")
 
 # ANCHOR: main
@@ -16,33 +16,33 @@ function describe(value)
     kind = value isa AbstractString ? "string" :
            value isa Bool ? "boolean" :
            value isa Integer ? "integer" :
-           value isa JExi.ExiDecimal ? "decimal" : "other"
-    return "$(JExi.plain_format(value)) ($kind)"
+           value isa EXIFormat.ExiDecimal ? "decimal" : "other"
+    return "$(EXIFormat.plain_format(value)) ($kind)"
 end
 
-tables = JExi.compile_files(data("order.xsd"))
-exi = JExi.encode_xml(read(data("order.xml"), String), tables)
+tables = EXIFormat.compile_files(data("order.xsd"))
+exi = EXIFormat.encode_xml(read(data("order.xml"), String), tables)
 
-dec = JExi.Decoder(exi, tables; options = JExi.strict_options())
+dec = EXIFormat.Decoder(exi, tables; options = EXIFormat.strict_options())
 depth = 0
 # A decoder is also an iterator: the loop ends after the end of the document.
 for event in dec
     indent = "  "^depth
-    if event isa JExi.StartDocument
+    if event isa EXIFormat.StartDocument
         println("start document")
-    elseif event isa JExi.EndDocument
+    elseif event isa EXIFormat.EndDocument
         println("end document")
-    elseif event isa JExi.StartElement
+    elseif event isa EXIFormat.StartElement
         println(indent, event.local_name)
         global depth += 1
-    elseif event isa JExi.EndElement
+    elseif event isa EXIFormat.EndElement
         global depth -= 1
-    elseif event isa JExi.Attribute
+    elseif event isa EXIFormat.Attribute
         println(indent, "@", event.local_name, " = ", describe(event.value))
-    elseif event isa JExi.Characters
+    elseif event isa EXIFormat.Characters
         println(indent, describe(event.value))
     else
-        println(indent, JExi.event_name(event))
+        println(indent, EXIFormat.event_name(event))
     end
 end
 # ANCHOR_END: main

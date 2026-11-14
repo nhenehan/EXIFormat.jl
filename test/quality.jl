@@ -3,7 +3,7 @@
 using Aqua
 
 @testset "Aqua" begin
-    Aqua.test_all(JExi)
+    Aqua.test_all(EXIFormat)
 end
 
 const JET_OK = try
@@ -16,6 +16,6 @@ end
 
 if JET_OK
     @testset "JET" begin
-        JET.test_package(JExi; target_modules = (JExi,))
+        JET.test_package(EXIFormat; target_modules = (EXIFormat,))
     end
 end

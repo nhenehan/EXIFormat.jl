@@ -1,8 +1,8 @@
-# Static tables from JExi.SchemaGen (rexi-tests/tests/generated_tables.rs and
+# Static tables from EXIFormat.SchemaGen (rexi-tests/tests/generated_tables.rs and
 # fixtures_strict_static.rs): they equal the tables compiled at run time, the
 # Milestone 1 checks pass over them, and the Appendix C module codes options
 # documents exactly like the hand-built OPTIONS_GRAMMARS.
-import JExi as J
+import EXIFormat as J
 
 const GENERATED = joinpath(@__DIR__, "generated")
 for f in sort!(readdir(GENERATED))

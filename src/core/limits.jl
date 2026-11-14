@@ -30,11 +30,11 @@ cap, the decoder throws a [`LimitError`] and stops.
 `nothing` turns a cap off; [`unlimited_limits`] turns them all off. The
 defaults are far above what normal documents need. Pass limits with the
 `limits` keyword of `Decoder`, `decode_events`, `decode_to_xml` and
-`from_exi`, or with the `--max-*` and `--no-limits` flags of the `jexi` tool:
+`from_exi`, or with the `--max-*` and `--no-limits` flags of the `exiformat` tool:
 
 ```julia
-limits = JExi.DecodeLimits(max_depth = 1000)
-xml = JExi.decode_to_xml(bytes, tables; options, limits)
+limits = EXIFormat.DecodeLimits(max_depth = 1000)
+xml = EXIFormat.decode_to_xml(bytes, tables; options, limits)
 ```
 """
 Base.@kwdef struct DecodeLimits

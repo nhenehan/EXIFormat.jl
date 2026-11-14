@@ -1,9 +1,9 @@
-# JExi
+# EXIFormat
 
-JExi is a Julia library for EXI (Efficient XML Interchange), the W3C format
+EXIFormat is a Julia library for EXI (Efficient XML Interchange), the W3C format
 that sends XML as small, fast binary. You give it your XML Schema. Both ends use
 the schema to agree on the format, so the messages can leave out names and
-types. JExi is a port of [rexi](https://github.com/nhenehan/rexi), the Rust
+types. EXIFormat is a port of [rexi](https://github.com/nhenehan/rexi), the Rust
 version, and makes the same bytes.
 
 Supported profile of EXI 1.0 (Second Edition): **schema-informed, strict, bit-packed or byte-aligned,
@@ -17,15 +17,15 @@ With [`order.xsd`](examples/basics/data/order.xsd) and
 current folder:
 
 ```julia
-import JExi
+import EXIFormat
 
 # Turn the schema into tables once, then reuse them for every message.
-tables = JExi.compile_files("order.xsd")
+tables = EXIFormat.compile_files("order.xsd")
 xml = read("order.xml", String)
 
-options = JExi.strict_options()
-exi = JExi.encode_xml(xml, tables; options)       # XML to EXI
-back = JExi.decode_to_xml(exi, tables; options)   # and back again
+options = EXIFormat.strict_options()
+exi = EXIFormat.encode_xml(xml, tables; options)       # XML to EXI
+back = EXIFormat.decode_to_xml(exi, tables; options)   # and back again
 
 println(sizeof(xml), " bytes of XML became ", length(exi), " bytes of EXI")
 println(back)
@@ -35,18 +35,18 @@ It prints `538 bytes of XML became 129 bytes of EXI`, then the XML.
 
 ## Add to your project
 
-JExi is not in the Julia registry yet. Add it from GitHub:
+EXIFormat is not in the Julia registry yet. Add it from GitHub:
 
 ```julia
 using Pkg
 Pkg.add(url = "https://github.com/nhenehan/jexi", rev = "v0.2.0")
 ```
 
-To work on JExi itself, use a local copy instead:
+To work on EXIFormat itself, use a local copy instead:
 `Pkg.develop(path = "path/to/jexi")`.
 
-JExi needs Julia 1.10 or newer. It has no exports, so every name is written
-`JExi.name`.
+EXIFormat needs Julia 1.10 or newer. It has no exports, so every name is written
+`EXIFormat.name`.
 
 ## Learn more
 
@@ -58,8 +58,8 @@ JExi needs Julia 1.10 or newer. It has no exports, so every name is written
 - **The examples**, in [`examples/basics`](examples/basics/README.md), are
   small scripts, one idea each. Each has a Rust twin in rexi that prints the
   same output.
-- **The command line**, [`bin/jexi`](bin/jexi), encodes and decodes files and
-  lists a schema's grammars. `bin/jexi --help` lists every command.
+- **The command line**, [`bin/exiformat`](bin/exiformat), encodes and decodes files and
+  lists a schema's grammars. `bin/exiformat --help` lists every command.
 
 ## What it does
 
@@ -67,7 +67,7 @@ JExi needs Julia 1.10 or newer. It has no exports, so every name is written
   substitution groups and `xs:all`) into grammar tables.
 - Encodes and decodes XML text, one event at a time, or your own Julia
   structs (`to_exi` / `from_exi`).
-- Writes the tables as a Julia module ahead of time (`JExi.SchemaGen`), so
+- Writes the tables as a Julia module ahead of time (`EXIFormat.SchemaGen`), so
   they precompile into your package.
 - Writes the same bytes as EXIficient, the reference Java library, for every
   interop test case in the strict profiles.
@@ -78,10 +78,10 @@ JExi needs Julia 1.10 or newer. It has no exports, so every name is written
 
 - **Compression and pre-compression.** They regroup the values and add
   DEFLATE, a large separate piece of work.
-- **Schema-less streams.** JExi needs your schema; the built-in grammars for
+- **Schema-less streams.** EXIFormat needs your schema; the built-in grammars for
   streams without one are not written yet.
 - **Non-strict mode.** Documents that stray from the schema need extra grammar
-  rules everywhere, which JExi does not build.
+  rules everywhere, which EXIFormat does not build.
 - **Preserve options.** Strict mode drops comments, processing instructions,
   DTDs and prefixes by design; keeping lexical values is not done yet.
 - **Wildcards** (`xs:any`, `xs:anyAttribute`). The stream must then carry the
@@ -90,7 +90,7 @@ JExi needs Julia 1.10 or newer. It has no exports, so every name is written
 - **Unreadable patterns on restricted strings.** When an `xs:pattern` cannot
   be parsed, the alphabet of its restricted character set is unknown, and its
   values are refused (more below).
-- **Fragments.** JExi encodes whole documents with one root element.
+- **Fragments.** EXIFormat encodes whole documents with one root element.
 - **selfContained.** The EXI spec does not allow it together with strict.
 - **datatypeRepresentationMap.** It swaps in other encodings for datatypes; it
   is rarely used, and every reader would need the same map.
@@ -124,22 +124,22 @@ change it.
 
 EXI is a W3C Recommendation, and it is a really good one: a careful design,
 written up clearly, with solid open libraries behind it. That work is what got
-this project started. rexi and JExi are my effort to take EXI further, to more
+this project started. rexi and EXIFormat are my effort to take EXI further, to more
 languages and more places.
 
 - **Rumen Kyusakov** wrote [exip](https://exip.sourceforge.net/), a compact C
   implementation of EXI, and co-edited the Second Edition of the
   [EXI specification](https://www.w3.org/TR/exi/). exip's decoder is one of the
-  checks JExi's output must pass.
+  checks EXIFormat's output must pass.
 - **Daniel Peintner** wrote [EXIficient](https://exificient.github.io/) with
   Richard Kuntschke at Siemens, co-edited the Second Edition, and edited the
-  [EXI Primer](https://www.w3.org/TR/exi-primer/). JExi's bytes are checked
+  [EXI Primer](https://www.w3.org/TR/exi-primer/). EXIFormat's bytes are checked
   against EXIficient's.
 - **Takuki Kamiya** edited the First Edition, chaired the EXI Working Group,
   and wrote Nagasena ([OpenEXI](https://sourceforge.net/projects/openexi/)).
   **John Schneider** also edited the First Edition, and **Santiago
   Pericas-Geertsen** co-edited the Primer and wrote the W3C test framework.
-- The **W3C EXI Working Group** as a whole made the specification that JExi
+- The **W3C EXI Working Group** as a whole made the specification that EXIFormat
   follows closely.
 
 Thank you.
@@ -156,7 +156,7 @@ bit-packed, bit-packed with options, and byte-aligned profiles, decode to the
 oracle's event stream, re-encode from decoded events, and are accepted by
 exipd. The schema compiler makes the same tables as rexi's for every fixture
 schema, and its EXIficient-format grammar dump equals the oracle's. In the
-rexi-interop matrix JExi matches rexi in every strict cell. Wildcards are refused
+rexi-interop matrix EXIFormat matches rexi in every strict cell. Wildcards are refused
 with `UnsupportedError(FEATURE_WILDCARD)`, restricted strings whose pattern
 does not parse with `UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
 
@@ -166,10 +166,10 @@ does not parse with `UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
 |---|---|---|
 | Codec core: bit I/O, datatypes, string tables, grammar tables and runtime, `Encoder` / `Decoder`, header and options document | `src/core/` | `rexi-core` |
 | XSD compiler: loader, resolver, proto-grammars, normalization, emit; EXIficient-format grammar dump | `src/schema/` | `rexi-schema` |
-| Static tables written as a Julia module (`JExi.SchemaGen`) | `src/schemagen.jl` | `rexi-schema-gen` |
+| Static tables written as a Julia module (`EXIFormat.SchemaGen`) | `src/schemagen.jl` | `rexi-schema-gen` |
 | XML front end over XML.jl: namespace-aware tree, reader, writer, `.events` dump | `src/xml/` | `rexi-xml` |
 | Struct mapping: `to_exi` / `from_exi`; the rules (attributes vs elements, `Vector` for repeats, `Union{Nothing,T}` for optional, `@enum`, choices and xsi:type, `$text`) are in the docstring at the top of `src/structs/structs.jl` | `src/structs/` | `rexi-serde` |
-| Command line (`bin/jexi`, `JExi.CLI`) | `src/cli.jl` | `rexi` binary |
+| Command line (`bin/exiformat`, `EXIFormat.CLI`) | `src/cli.jl` | `rexi` binary |
 
 Grammar tables (`GrammarSet`) are flat vectors of plain bits structs indexed by
 0-based ids, like rexi's, so a table written by `SchemaGen` is a constant that
@@ -183,13 +183,13 @@ scripts/fetch-standards.sh [--check]   # W3C EXI 1.0 (dated REC) and its Appendi
 scripts/sync-fixtures.sh [--check]     # fixtures and rexi's grammar listings, from the pinned rexi
 scripts/gen-tables.sh [--check]        # static tables in test/generated
 scripts/gate.sh [--quick]              # everything a commit must pass
-bin/jexi encode --xsd a.xsd in.xml out.exi
-bin/jexi decode --xsd a.xsd [--max-depth N ... | --no-limits] out.exi
-bin/jexi dump-grammar --xsd a.xsd[,b.xsd]
-bin/jexi bench encode|decode --xsd a.xsd [--warmup N --iterations N] in
+bin/exiformat encode --xsd a.xsd in.xml out.exi
+bin/exiformat decode --xsd a.xsd [--max-depth N ... | --no-limits] out.exi
+bin/exiformat dump-grammar --xsd a.xsd[,b.xsd]
+bin/exiformat bench encode|decode --xsd a.xsd [--warmup N --iterations N] in
 ```
 
-`bin/jexi` takes rexi's command line (`rexi --help` and `bin/jexi --help` list
+`bin/exiformat` takes rexi's command line (`rexi --help` and `bin/exiformat --help` list
 the same commands and flags) and prints the same `bench` JSON, which is how the
 rexi-interop harness drives both. Speed notes are in
 [`doc/performance.md`](doc/performance.md).
@@ -204,12 +204,12 @@ current Julia.
 `crates/rexi-tests/fixtures/interop` at the commit pinned in
 `third-party.lock`: EXIficient 1.0.7 bytes, decoded event streams and grammar
 dumps, with their sha256 in `manifest.tsv`. `test/fixtures/listings` holds
-`rexi dump-grammar` for each case, which `JExi.grammar_listing` must reproduce
+`rexi dump-grammar` for each case, which `EXIFormat.grammar_listing` must reproduce
 exactly.
 
 **Third parties.** Nothing third-party lives in the working tree.
 `scripts/fetch-third-party.sh` checks out the commits pinned in
 `third-party.lock` (exip for the exipd judge and the EXIficient oracle, rexi
 for the fixtures and its CLI) into
-`${JEXI_THIRD_PARTY:-${XDG_CACHE_HOME:-~/.cache}/jexi/third_party}`. Julia
+`${EXIFORMAT_THIRD_PARTY:-${XDG_CACHE_HOME:-~/.cache}/exiformat/third_party}`. Julia
 dependencies: XML.jl and PrecompileTools; tests also use Aqua and JET.

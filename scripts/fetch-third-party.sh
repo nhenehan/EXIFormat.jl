@@ -11,13 +11,13 @@
 #                                                (rewrites that lock line)
 #   scripts/fetch-third-party.sh --print-dir     print the cache directory
 #
-# Env: JEXI_THIRD_PARTY  cache directory
-#      (default ${XDG_CACHE_HOME:-$HOME/.cache}/jexi/third_party)
+# Env: EXIFORMAT_THIRD_PARTY  cache directory
+#      (default ${XDG_CACHE_HOME:-$HOME/.cache}/exiformat/third_party)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOCK="$ROOT/third-party.lock"
-DIR="${JEXI_THIRD_PARTY:-${XDG_CACHE_HOME:-$HOME/.cache}/jexi/third_party}"
+DIR="${EXIFORMAT_THIRD_PARTY:-${XDG_CACHE_HOME:-$HOME/.cache}/exiformat/third_party}"
 
 MODE=fetch
 BUILD=0

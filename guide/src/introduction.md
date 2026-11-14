@@ -41,10 +41,10 @@ hardest:
 Every example has a Rust twin in rexi that prints exactly the same output, so you
 can read the two languages side by side.
 
-## What JExi does not do (yet)
+## What EXIFormat does not do (yet)
 
-JExi works in [strict](glossary.md#strict-non-strict), schema-informed mode
+EXIFormat works in [strict](glossary.md#strict-non-strict), schema-informed mode
 only. That is the most compact form EXI offers. Compression, schema-less
 streams, non-strict mode and the "preserve" options (comments, prefixes and so
-on) are refused with a clear error. JExi never quietly does something close
+on) are refused with a clear error. EXIFormat never quietly does something close
 enough instead.

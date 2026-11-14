@@ -3,7 +3,7 @@
 In this chapter you'll describe a document once as Julia structs, then encode
 and decode it with one call each.
 
-Writing events by hand gets long. `JExi.to_exi` and `JExi.from_exi` do the
+Writing events by hand gets long. `EXIFormat.to_exi` and `EXIFormat.from_exi` do the
 walking for you:
 
 ```julia
@@ -37,9 +37,9 @@ flowchart LR
 |---|---|
 | `Union{Nothing,T}` | An item that may be missing |
 | `Vector{T}` | An item that repeats |
-| `JExi.exi_names(::Type{T})`, `JExi.exi_rename_all` | Match Julia names to XML names |
+| `EXIFormat.exi_names(::Type{T})`, `EXIFormat.exi_rename_all` | Match Julia names to XML names |
 | `@enum` | An `xs:enumeration` value |
-| A `Union` of structs, or `JExi.exi_choices` | A choice between elements |
+| A `Union` of structs, or `EXIFormat.exi_choices` | A choice between elements |
 
 The full list of rules is at the top of `src/structs/structs.jl`. Encoding and
 decoding are then one call each:

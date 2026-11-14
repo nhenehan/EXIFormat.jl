@@ -1,5 +1,5 @@
 # Bit I/O, ported from rexi-core/src/io/{bits,bit_writer,bit_reader}.rs.
-using JExi:
+using EXIFormat:
     ceil_log2, bits_to_represent, BitWriter, BitReader, write_raw_bits!,
     write_nbit_unsigned!, write_bool!, write_byte!, write_bytes!, align_to_byte!,
     set_byte_aligned!, finish!, bit_position, read_raw_bits!, read_nbit_unsigned!,

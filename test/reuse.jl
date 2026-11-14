@@ -1,7 +1,7 @@
 # reset!: a reused decoder or encoder must behave exactly like a new one.
 # Uses the interop fixtures of fixtures_strict.jl (INTEROP, PROFILES,
 # reference, out_of_band, interop_cases).
-import JExi as J
+import EXIFormat as J
 
 # Both sides iterate a Decoder (decode_events formats enumerations by name,
 # iteration gives their ordinals).

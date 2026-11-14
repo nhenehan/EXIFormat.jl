@@ -46,5 +46,5 @@ non-strict: refused as unsupported
 | `schema_id` | Readers should be able to check they have the right schema. Name the tables with the same id (`with_schema_id`), and the decoder refuses a stream that names another schema. |
 | Byte-aligned | You are debugging. Text like `4f 52 44` (`ORD`) shows up in a hex dump. |
 
-JExi refuses options it does not support when you build the encoder, so you
+EXIFormat refuses options it does not support when you build the encoder, so you
 find out right away.

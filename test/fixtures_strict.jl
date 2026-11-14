@@ -3,8 +3,8 @@
 #   (a) encoding the XML gives EXIficient 1.0.7's bytes, bit for bit;
 #   (b) decoding EXIficient's bytes gives the oracle's event stream;
 #   (c) re-encoding the typed decoded events gives the bytes back;
-#   (e) exipd, the exip decoder, accepts JExi's output.
-import JExi as J
+#   (e) exipd, the exip decoder, accepts EXIFormat's output.
+import EXIFormat as J
 
 const INTEROP = joinpath(@__DIR__, "fixtures", "interop")
 
@@ -41,9 +41,9 @@ function describe_diff(label, actual, expected)
            "  actual   [$lo..]: $(hex(actual))\n  expected [$lo..]: $(hex(expected))"
 end
 
-third_party_dir() = get(ENV, "JEXI_THIRD_PARTY", joinpath(get(ENV, "XDG_CACHE_HOME", joinpath(homedir(), ".cache")), "jexi", "third_party"))
+third_party_dir() = get(ENV, "EXIFORMAT_THIRD_PARTY", joinpath(get(ENV, "XDG_CACHE_HOME", joinpath(homedir(), ".cache")), "exiformat", "third_party"))
 exipd_binary() = (p = joinpath(third_party_dir(), "exip", "build", "examples", "simpleDecoding", "exipd"); isfile(p) ? p : nothing)
-judges_required() = haskey(ENV, "JEXI_REQUIRE_JUDGES")
+judges_required() = haskey(ENV, "EXIFORMAT_REQUIRE_JUDGES")
 schema_exis(c) = [joinpath(INTEROP, basename(x) * ".exi") for x in c.xsds]
 
 """Runs exipd on a stream; `nothing` when it accepts it, else what it said."""

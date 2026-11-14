@@ -2,7 +2,7 @@
 # ported from rexi-core/tests/header_options.rs and the rexi-core crate example.
 # The byte strings were confirmed against EXIficient 1.0.7 (and RFC 8428's SenML
 # examples) in rexi.
-import JExi as J
+import EXIFormat as J
 
 function header_bytes(o; cookie = false, include_options = false)
     w = J.BitWriter()

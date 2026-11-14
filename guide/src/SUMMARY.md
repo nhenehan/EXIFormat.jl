@@ -15,5 +15,5 @@
 
 ---
 
-[JExi and rexi side by side](side-by-side.md)
+[EXIFormat and rexi side by side](side-by-side.md)
 [Thanks](thanks.md)

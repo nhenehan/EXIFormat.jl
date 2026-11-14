@@ -1,6 +1,6 @@
 # Standards the tests and generators read, fetched from their publishers by
 # scripts/fetch-standards.sh into
-# ${JEXI_STANDARDS:-${XDG_CACHE_HOME:-~/.cache}/jexi/standards}. They are linked,
+# ${EXIFORMAT_STANDARDS:-${XDG_CACHE_HOME:-~/.cache}/exiformat/standards}. They are linked,
 # never committed.
 #
 # Each line: <file> <sha256> <source: a URL, or a part of an earlier file>

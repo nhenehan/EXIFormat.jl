@@ -13,11 +13,11 @@
 #   scripts/sync-fixtures.sh --check   exit 1 if anything differs from the pin
 #                                      or a file does not match its sha256
 #
-# Env: JEXI_THIRD_PARTY  cache directory (see scripts/fetch-third-party.sh)
+# Env: EXIFORMAT_THIRD_PARTY  cache directory (see scripts/fetch-third-party.sh)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DIR="${JEXI_THIRD_PARTY:-${XDG_CACHE_HOME:-$HOME/.cache}/jexi/third_party}"
+DIR="${EXIFORMAT_THIRD_PARTY:-${XDG_CACHE_HOME:-$HOME/.cache}/exiformat/third_party}"
 REXI="$DIR/rexi"
 REXI_BIN="$REXI/target/release/rexi"
 DST="$ROOT/test/fixtures"

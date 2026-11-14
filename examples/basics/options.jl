@@ -8,28 +8,28 @@
 #
 # Rust version: rexi/examples/basics/src/bin/options.rs.
 
-import JExi
+import EXIFormat
 include("common.jl")
 
 # ANCHOR: main
 # Named, so a decoder can check a stream's schemaId against it.
-tables = JExi.with_schema_id(JExi.compile_files(data("order.xsd")), "urn:rexi:interop:order")
+tables = EXIFormat.with_schema_id(EXIFormat.compile_files(data("order.xsd")), "urn:rexi:interop:order")
 xml = read(data("order.xml"), String)
 
-plain = JExi.HeaderConfig()
-with_options = JExi.HeaderConfig(; include_options = true)
-with_cookie = JExi.HeaderConfig(; cookie = true, include_options = true)
+plain = EXIFormat.HeaderConfig()
+with_options = EXIFormat.HeaderConfig(; include_options = true)
+with_cookie = EXIFormat.HeaderConfig(; cookie = true, include_options = true)
 cases = [
-    ("bit-packed", JExi.strict_options(), plain),
+    ("bit-packed", EXIFormat.strict_options(), plain),
     # Every event code and value starts on a new byte: bigger, but easier to
     # read in a hex dump.
-    ("byte-aligned", JExi.strict_options(; alignment = JExi.ALIGN_BYTE_ALIGNED), plain),
-    ("options in header", JExi.strict_options(), with_options),
-    ("cookie + options + schemaId", JExi.strict_options(; schema_id = "urn:rexi:interop:order"), with_cookie),
+    ("byte-aligned", EXIFormat.strict_options(; alignment = EXIFormat.ALIGN_BYTE_ALIGNED), plain),
+    ("options in header", EXIFormat.strict_options(), with_options),
+    ("cookie + options + schemaId", EXIFormat.strict_options(; schema_id = "urn:rexi:interop:order"), with_cookie),
 ]
 
 streams = map(cases) do (label, options, header)
-    exi = JExi.encode_xml(xml, tables; options, header)
+    exi = EXIFormat.encode_xml(xml, tables; options, header)
     println(rpad(label, 28), " ", lpad(length(exi), 4), " bytes  starts ", hex_start(exi, 8))
     (exi, options, header)
 end
@@ -37,18 +37,18 @@ end
 # A stream that carries its options can be decoded without being told them. The
 # others need them passed in.
 decoded = map(streams) do (exi, options, header)
-    JExi.decode_to_xml(exi, tables; options = header.include_options ? nothing : options)
+    EXIFormat.decode_to_xml(exi, tables; options = header.include_options ? nothing : options)
 end
 println("all four decode to the same XML: ", all(==(decoded[1]), decoded))
 
 # Options this library does not support are refused, never guessed at.
-for (label, options) in [("compression", JExi.strict_options(; compression = true)),
-                         ("non-strict", JExi.ExiOptions())]
+for (label, options) in [("compression", EXIFormat.strict_options(; compression = true)),
+                         ("non-strict", EXIFormat.ExiOptions())]
     try
-        JExi.validate_options(options)
+        EXIFormat.validate_options(options)
         println(label, ": accepted")
     catch e
-        e isa JExi.UnsupportedError || rethrow()
+        e isa EXIFormat.UnsupportedError || rethrow()
         println(label, ": refused as unsupported")
     end
 end

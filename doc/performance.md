@@ -1,7 +1,7 @@
 # Performance (0.1)
 
 Measured on 2026-11-05 on an AMD Ryzen 7 7840U, Linux 7.2.6, Julia 1.12.7,
-with the rexi-interop harness: jexi e336de8, and rexi b2ab2a8 as a release
+with the rexi-interop harness: EXIFormat e336de8, and rexi b2ab2a8 as a release
 build with rustc 1.99. Each library times itself in-process: a warm-up of at
 least 2000 runs and 3 s, then 2000 timed runs. The tables give the median in
 µs. Schema compilation is not included. The harness's `reports/latest.md` has
@@ -9,7 +9,7 @@ the same runs with p10–p90.
 
 ## Decoding (median µs)
 
-| case | P0 rexi | P0 jexi | P2 rexi | P2 jexi |
+| case | P0 rexi | P0 EXIFormat | P2 rexi | P2 EXIFormat |
 |---|---|---|---|---|
 | S1 order | 0.8 | 0.9 | 0.8 | 0.9 |
 | S2 telemetry | 0.8 | 0.8 | 0.8 | 0.8 |
@@ -26,7 +26,7 @@ the same runs with p10–p90.
 | U1 multilingual | 4.4 | 5.9 | 4.0 | 5.4 |
 | B1 binary | 0.4 | 0.5 | 0.4 | 0.5 |
 
-rexi's median is at or below jexi's in every cell but P2 S4. jexi's p90 is
+rexi's median is at or below EXIFormat's in every cell but P2 S4. EXIFormat's p90 is
 higher than its median by more than rexi's is, because of garbage-collector
 pauses.
 
@@ -48,7 +48,7 @@ stored in value entries, presized vectors, a larger scan limit, and flat
 
 ## Encoding from XML (median µs, parsing included)
 
-| case | P0 rexi | P0 jexi | P2 rexi | P2 jexi |
+| case | P0 rexi | P0 EXIFormat | P2 rexi | P2 EXIFormat |
 |---|---|---|---|---|
 | S1 order | 3.2 | 4.8 | 3.1 | 5.1 |
 | S2 telemetry | 3.1 | 5.2 | 3.0 | 5.2 |
@@ -65,7 +65,7 @@ stored in value entries, presized vectors, a larger scan limit, and flat
 | U1 multilingual | 14.9 | 21.1 | 14.5 | 19.7 |
 | B1 binary | 1.7 | 3.2 | 1.7 | 3.1 |
 
-jexi takes 1.2–1.9× rexi's time. Encoding from events (no XML parsing) takes
+EXIFormat takes 1.2–1.9× rexi's time. Encoding from events (no XML parsing) takes
 1.6–5.9 µs (14.3–14.5 on U1), which is 1.2–2.1× rexi's time.
 
 These changes made encoding from XML about 2× faster than the first working
@@ -122,5 +122,5 @@ reader.
 
 A PrecompileTools workload (`src/precompile.jl`) compiles a small schema and
 encodes and decodes a document in each profile at precompile time. A cold
-`bin/jexi encode` takes about 0.75 s (13 s without the workload). Compiling a
+`bin/exiformat encode` takes about 0.75 s (13 s without the workload). Compiling a
 test schema takes about 0.1 s.

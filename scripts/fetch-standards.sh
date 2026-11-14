@@ -9,8 +9,8 @@
 #                                           and has its sha256 (no network)
 #   scripts/fetch-standards.sh --print-dir  print the cache directory
 #
-# Env: JEXI_STANDARDS  cache directory
-#      (default ${XDG_CACHE_HOME:-$HOME/.cache}/jexi/standards)
+# Env: EXIFORMAT_STANDARDS  cache directory
+#      (default ${XDG_CACHE_HOME:-$HOME/.cache}/exiformat/standards)
 #
 # standards.lock lines: <file> <sha256> <source>. The source is a URL, or a part
 # of another file in the lock:
@@ -23,7 +23,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOCK="$ROOT/standards.lock"
-DIR="${JEXI_STANDARDS:-${XDG_CACHE_HOME:-$HOME/.cache}/jexi/standards}"
+DIR="${EXIFORMAT_STANDARDS:-${XDG_CACHE_HOME:-$HOME/.cache}/exiformat/standards}"
 
 MODE=fetch
 case "${1:-}" in

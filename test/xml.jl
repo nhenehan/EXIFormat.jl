@@ -2,7 +2,7 @@
 # unit tests; tests/whitespace.rs, wildcard_namespaces.rs, fixtures.rs) and
 # rexi-tests/tests/exip_clones.rs. The hex strings are EXIficient 1.0.7
 # `encode-xml --strict` output, recorded in rexi.
-import JExi as J
+import EXIFormat as J
 
 se(u, l) = J.StartElement(u, l)
 at(u, l, v) = J.Attribute(u, l, J.Lexical(v))

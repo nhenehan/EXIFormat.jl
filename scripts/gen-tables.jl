@@ -3,7 +3,7 @@
 # schema (https://www.w3.org/TR/exi/#optionsSchema), which
 # scripts/fetch-standards.sh takes out of the W3C Recommendation.
 # Run through scripts/gen-tables.sh.
-using JExi
+using EXIFormat
 
 const ROOT = dirname(@__DIR__)
 const FIX = joinpath(ROOT, "test", "fixtures")
@@ -27,7 +27,7 @@ push!(jobs, ("exi_options", "ExiOptions", "EXI_OPTIONS", [options_xsd]))
 ok = true
 for (file, mod, name, xsds) in jobs
     out = joinpath(OUT, file * ".jl")
-    same = JExi.SchemaGen.generate(xsds; out, name, module_name = mod, check)
+    same = EXIFormat.SchemaGen.generate(xsds; out, name, module_name = mod, check)
     if check && !same
         println(stderr, "STALE    ", relpath(out, ROOT))
         global ok = false

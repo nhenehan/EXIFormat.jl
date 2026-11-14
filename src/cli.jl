@@ -1,26 +1,26 @@
-# The `jexi` command line (rexi-xml bin/rexi.rs), same commands and flags as
-# `rexi`, so the rexi-interop harness drives both the same way. `bin/jexi` runs
-# `JExi.CLI.main(ARGS)`.
+# The `exiformat` command line (rexi-xml bin/rexi.rs), same commands and flags as
+# `rexi`, so the rexi-interop harness drives both the same way. `bin/exiformat` runs
+# `EXIFormat.CLI.main(ARGS)`.
 
 """
     CLI
 
-The `jexi` command: `encode`, `decode`, `dump-events`, `dump-grammar`,
-`xml-events` and `bench encode|decode`. See `JExi.CLI.USAGE`.
+The `exiformat` command: `encode`, `decode`, `dump-events`, `dump-grammar`,
+`xml-events` and `bench encode|decode`. See `EXIFormat.CLI.USAGE`.
 """
 module CLI
 
-import ..JExi as J
+import ..EXIFormat as J
 
 const USAGE = """
 usage:
-  jexi encode  --xsd <main.xsd>[,<more.xsd>...] [options] <in.xml> <out.exi>
-  jexi decode  --xsd <main.xsd>[,...] [options] <in.exi>        EXI to XML on stdout
-  jexi dump-events --xsd <main.xsd>[,...] [options] <in.exi>    EXI to .events on stdout
-  jexi dump-grammar --xsd <main.xsd>[,...]                      list the compiled grammars
-  jexi xml-events <in.xml>                                      XML to .events on stdout
-  jexi bench encode --xsd ... [options] [bench] <in.xml>        time encoding, JSON on stdout
-  jexi bench decode --xsd ... [options] [bench] <in.exi>        time decoding, JSON on stdout
+  exiformat encode  --xsd <main.xsd>[,<more.xsd>...] [options] <in.xml> <out.exi>
+  exiformat decode  --xsd <main.xsd>[,...] [options] <in.exi>        EXI to XML on stdout
+  exiformat dump-events --xsd <main.xsd>[,...] [options] <in.exi>    EXI to .events on stdout
+  exiformat dump-grammar --xsd <main.xsd>[,...]                      list the compiled grammars
+  exiformat xml-events <in.xml>                                      XML to .events on stdout
+  exiformat bench encode --xsd ... [options] [bench] <in.xml>        time encoding, JSON on stdout
+  exiformat bench decode --xsd ... [options] [bench] <in.exi>        time decoding, JSON on stdout
 
 options (encode: header contents; decode/dump-events: out-of-band options used when
 the stream carries none):
@@ -193,7 +193,7 @@ header_of(a::Args) = J.HeaderConfig(; cookie = a.cookie, include_options = a.inc
 """
     main(argv; out = stdout, err = stderr) -> Int
 
-Runs one `jexi` command and returns the exit code: 0, or 1 with `jexi: <message>` on `err`.
+Runs one `exiformat` command and returns the exit code: 0, or 1 with `exiformat: <message>` on `err`.
 """
 function main(argv::Vector{String} = ARGS; out::IO = stdout, err::IO = stderr)
     try
@@ -202,7 +202,7 @@ function main(argv::Vector{String} = ARGS; out::IO = stdout, err::IO = stderr)
     catch e
         e isa InterruptException && rethrow()
         msg = e isa UsageError ? e.msg : sprint(showerror, e)
-        println(err, "jexi: ", rstrip(msg))
+        println(err, "exiformat: ", rstrip(msg))
         return 1
     end
 end
@@ -270,7 +270,7 @@ function count_events(bytes, tables, opts, limits)
 end
 
 """
-`jexi bench encode|decode`: timing inside this process, for the interop
+`exiformat bench encode|decode`: timing inside this process, for the interop
 benchmark. Prints one JSON object with the operation, sizes, the setup time
 (schema compiling) and the nanoseconds of every timed run. For `encode`,
 `output` is the EXI size in bytes; for `decode`, the number of events.
@@ -312,7 +312,7 @@ function bench(a::Args, out::IO)
     else
         throw(UsageError("bench: unknown operation $(repr(op)) (encode|decode)"))
     end
-    print(out, "{\"impl\":\"jexi\",\"version\":\"", pkgversion(J), "\",\"op\":\"", op, "\",\"input\":\"", kind,
+    print(out, "{\"impl\":\"exiformat\",\"version\":\"", pkgversion(J), "\",\"op\":\"", op, "\",\"input\":\"", kind,
         "\",\"input_bytes\":", length(data), ",\"output\":", output, ",\"setup_ns\":", setup_ns, ",\"warmup\":",
         a.warmup, ",\"iterations\":", a.iterations, ",\"ns\":[", join(ns, ','), "]}\n")
     return nothing

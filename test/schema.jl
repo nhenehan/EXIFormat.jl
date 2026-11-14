@@ -1,17 +1,17 @@
 # The schema compiler, against rexi's grammar listings and its unit tests
 # (rexi-schema builtin.rs, datatype_map.rs, proto/normalize.rs).
-import JExi as J
+import EXIFormat as J
 
 const FIX = joinpath(@__DIR__, "fixtures")
 
-# The standards cache scripts/fetch-standards.sh fills: $JEXI_STANDARDS, else
-# ${XDG_CACHE_HOME:-~/.cache}/jexi/standards. Standards are linked, not committed.
+# The standards cache scripts/fetch-standards.sh fills: $EXIFORMAT_STANDARDS, else
+# ${XDG_CACHE_HOME:-~/.cache}/exiformat/standards. Standards are linked, not committed.
 function standard_path(file)
-    dir = get(ENV, "JEXI_STANDARDS", "")
+    dir = get(ENV, "EXIFORMAT_STANDARDS", "")
     if isempty(dir)
         cache = get(ENV, "XDG_CACHE_HOME", "")
         isempty(cache) && (cache = joinpath(homedir(), ".cache"))
-        dir = joinpath(cache, "jexi", "standards")
+        dir = joinpath(cache, "exiformat", "standards")
     end
     path = joinpath(dir, file)
     isfile(path) || error("$path is missing: run scripts/fetch-standards.sh")
@@ -37,7 +37,7 @@ end
         if listing != expected
             a, b = split(listing, '\n'), split(expected, '\n')
             i = findfirst(k -> k > length(a) || k > length(b) || a[k] != b[k], 1:max(length(a), length(b)))
-            @info "first difference at line $i" jexi = get(a, i, "") rexi = get(b, i, "")
+            @info "first difference at line $i" exiformat = get(a, i, "") rexi = get(b, i, "")
         end
         @test listing == expected
     end
@@ -415,7 +415,7 @@ end
 end
 
 # ------------------------------------------------- EXIficient's grammar dumps
-# Ported from rexi-schema/tests/oracle_dump.rs. EXIficient and JExi number
+# Ported from rexi-schema/tests/oracle_dump.rs. EXIficient and EXIFormat number
 # their grammar objects differently and EXIficient keeps duplicates, so both
 # dumps are canonicalized first: equal blocks are merged by partition
 # refinement, then renumbered depth-first from the document grammar.

@@ -1,7 +1,7 @@
 # EXIficient's grammar dump format (rexi-schema dump.rs), so the compiled
 # grammars can be compared with the oracle's `dump-grammars` output.
 #
-# EXIficient keeps separate grammar objects where JExi shares rules: the
+# EXIficient keeps separate grammar objects where EXIFormat shares rules: the
 # first start tag of an element that is nillable or typecastable (its own
 # object), of a type, the element content after the attributes, and an "end"
 # after simple content. The dumper rebuilds those objects from the tables, then

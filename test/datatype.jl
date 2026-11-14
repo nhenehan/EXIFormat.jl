@@ -1,6 +1,6 @@
 # Datatypes, ported from rexi-core/src/datatype/*.rs (exip check_streamIO.c
 # vectors and EXIficient core tests).
-import JExi as J
+import EXIFormat as J
 
 function enc(f; aligned = false)
     w = J.BitWriter(; byte_aligned = aligned)

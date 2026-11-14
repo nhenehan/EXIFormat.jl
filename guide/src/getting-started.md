@@ -1,10 +1,10 @@
 # Getting started
 
-In this chapter you'll add JExi to a project and run the examples.
+In this chapter you'll add EXIFormat to a project and run the examples.
 
-## Add JExi to your project
+## Add EXIFormat to your project
 
-JExi is not in the Julia registry yet, so add it from GitHub. It needs
+EXIFormat is not in the Julia registry yet, so add it from GitHub. It needs
 Julia 1.10 or newer.
 
 ```julia
@@ -12,16 +12,16 @@ using Pkg
 Pkg.add(url = "https://github.com/nhenehan/jexi", rev = "v0.2.0")
 ```
 
-To work on JExi itself, use a local copy instead:
+To work on EXIFormat itself, use a local copy instead:
 `Pkg.develop(path = "path/to/jexi")`.
 
 Then:
 
 ```julia
-import JExi
+import EXIFormat
 ```
 
-JExi has no exports. You write every name as `JExi.name`, so it is always clear
+EXIFormat has no exports. You write every name as `EXIFormat.name`, so it is always clear
 where a name comes from.
 
 ## Run the examples

@@ -1,5 +1,5 @@
 """
-    JExi
+    EXIFormat
 
 Native Julia implementation of W3C Efficient XML Interchange (EXI) 1.0, Second
 Edition ([spec](https://www.w3.org/TR/exi/)), a compact binary form of XML. It
@@ -15,7 +15,7 @@ Nothing is quietly encoded in some "close enough" way.
 Restricted character sets
 ([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet)) are written as
 EXI says: when a string type's `xs:pattern` allows only a small alphabet, each
-character is a short index into it. A pattern JExi cannot parse leaves the
+character is a short index into it. A pattern EXIFormat cannot parse leaves the
 alphabet unknown, so values of that type (kind `K_RESTRICTED_STRING` with no
 alphabet) are refused rather than guessed; the schema still compiles, and
 documents that do not use the type work.
@@ -26,7 +26,7 @@ and a stream that goes over a cap stops with a `LimitError`. The defaults suit
 normal documents; pass `limits` to `Decoder`, `decode_events`,
 `decode_to_xml` or `from_exi` to change them.
 """
-module JExi
+module EXIFormat
 
 include("core/errors.jl")
 include("core/limits.jl")
@@ -73,4 +73,4 @@ include("structs/structs.jl")
 include("cli.jl")
 include("precompile.jl")
 
-end # module JExi
+end # module EXIFormat

@@ -6,13 +6,13 @@ whenever one is new.
 ## Schema
 
 An XML Schema (an `.xsd` file) describes which elements and attributes a
-document may have, in what order, and what type each value is. JExi needs one.
+document may have, in what order, and what type each value is. EXIFormat needs one.
 
 ## Grammar, grammar tables
 
 A **grammar** is the schema turned into rules for "what may come next" at each
 point in a document. **Grammar tables** are all those rules in one value, made
-by `JExi.compile_files`. The encoder and decoder both follow them.
+by `EXIFormat.compile_files`. The encoder and decoder both follow them.
 
 ## Event
 
@@ -23,7 +23,7 @@ attribute, some text, or an end. EXI writes a document as a list of events.
 
 **Strict** mode allows only what the schema allows, which makes the output as
 small as it can be. **Non-strict** mode also allows documents that stray from
-the schema, at a cost in size. JExi does strict mode only.
+the schema, at a cost in size. EXIFormat does strict mode only.
 
 ## Header
 
@@ -59,7 +59,7 @@ writes a short number that points back to it, not the whole string.
 ## Text ("lexical") value
 
 A value written as text, the way it looks in an XML file, such as `"42.95"`.
-The EXI spec calls this the **lexical** form. JExi parses it into the schema's
+The EXI spec calls this the **lexical** form. EXIFormat parses it into the schema's
 type (here, a decimal) before writing it.
 
 ## Precompile

@@ -1,7 +1,7 @@
 # String tables, ported from rexi-core/src/string_table/{mod,initial,value}.rs
 # (with EXIficient's StringTableCoreTest, BoundedTableTestCase and
 # InitialEntriesStringTablePartitionsTestCase).
-import JExi as J
+import EXIFormat as J
 
 const QN = J.QNameId
 
