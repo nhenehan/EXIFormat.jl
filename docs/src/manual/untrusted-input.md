@@ -14,7 +14,7 @@ document needs. Going over one stops decoding with a `LimitError` such as
 | `max_depth` | 256 | Elements nested too deeply. A schema where an element must hold itself lets 2 bytes nest without end, and deep trees overflow the stack in `from_exi`. |
 | `max_list_items` | 1,000,000 | Too many items in one list. Items can take zero bits, so a short stream can claim any count. |
 | `max_integer_bits` | 4096 | Huge integers (also in decimals, floats and years), which are slow to read. |
-| `max_string_bytes` | 256 MiB | Too much text in total. A repeat from the [string table](glossary.md#string-table) costs a few bits, so one long string repeated can grow into gigabytes. |
+| `max_string_bytes` | 256 MiB | Too much text in total. A repeat from the [string table](@ref "String table") costs a few bits, so one long string repeated can grow into gigabytes. |
 
 Each check happens *before* the work it guards:
 

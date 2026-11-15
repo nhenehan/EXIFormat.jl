@@ -7,10 +7,10 @@ Writing events by hand gets long. `EXIFormat.to_exi` and `EXIFormat.from_exi` do
 walking for you:
 
 ```julia
-{{#include ../../examples/basics/structs.jl:types}}
+#! include structs.jl types
 ```
 
-The [schema](glossary.md#schema) decides where each field goes, so you never
+The [schema](@ref "Schema") decides where each field goes, so you never
 mark a field as an attribute or an element yourself:
 
 ```mermaid
@@ -47,19 +47,12 @@ flowchart LR
 The full list of rules is in the `EXIFormat.to_exi` docstring (`?EXIFormat.to_exi`). Encoding and
 decoding are then one call each:
 
-```julia
-{{#include ../../examples/basics/structs.jl:main}}
+```@setup structs
+#! setup structs.jl
 ```
 
-```text
-EXI: 129 bytes
-same bytes as encoding order.xml: true
-decodes and encodes to the same bytes: true
-order ORD-2026-0007 for Raven Bookstore (gold)
-  2 x Distributed Systems Patterns     42.95
-  1 x Practical EXI                    31.50
-  total 117.40
-  notes: gift-wrap requested
+```@example structs
+#! include structs.jl main
 ```
 
 The bytes are the same as encoding the XML file. EXI does not care how you made

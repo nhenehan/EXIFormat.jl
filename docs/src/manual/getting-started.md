@@ -39,18 +39,14 @@ julia --project=examples/basics examples/basics/run-all.jl          # every exam
 ## The sample order
 
 Every example uses the same two files in `examples/basics/data`. The
-[schema](glossary.md#schema) says an `Order` has an `orderId`, a `Customer`,
+[schema](@ref "Schema") says an `Order` has an `orderId`, a `Customer`,
 one or more `Item`s and maybe some `Notes`:
 
 ```xml
-{{#include ../../examples/basics/data/order.xml}}
+#! include data/order.xml
 ```
 
-<details>
-<summary>The schema, <code>order.xsd</code></summary>
-
-```xml
-{{#include ../../examples/basics/data/order.xsd}}
-```
-
-</details>
+!!! details "The schema, `order.xsd`"
+    ```xml
+    #! include data/order.xsd
+    ```

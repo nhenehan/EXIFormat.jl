@@ -1,15 +1,36 @@
-# EXIFormat
+# EXIFormat.jl
 
-EXIFormat is a Julia library for EXI (Efficient XML Interchange), the W3C format
-that sends XML as small, fast binary. You give it your XML Schema. Both ends use
-the schema to agree on the format, so the messages can leave out names and
-types. EXIFormat is a port of [rexi](https://github.com/nhenehan/rexi), the Rust
-version, and makes the same bytes. Up to version 0.2.0 it was called JExi.
+*EXI (Efficient XML Interchange) for Julia: small, fast binary XML from your XML Schema.*
 
-EXIFormat needs your XML Schema and writes strict EXI 1.0 (Second Edition). You
-can pick bit-packed or byte-aligned, with or without the `$EXI` cookie, and
-with the options written in the header or agreed ahead of time. With no cookie
-and the options agreed ahead of time, the header is one byte.
+[![docs-stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://nhenehan.github.io/EXIFormat.jl/stable)
+[![docs-dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://nhenehan.github.io/EXIFormat.jl/dev)
+[![CI](https://github.com/nhenehan/EXIFormat.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/nhenehan/EXIFormat.jl/actions/workflows/CI.yml)
+
+EXIFormat turns XML into small, fast binary messages and back. The format is EXI,
+a W3C standard. You give EXIFormat your XML Schema. Both ends use it to agree on
+the structure and types of the data, so names and other things the schema
+already says don't need to be repeated in every message. In the manual's
+example, 538 bytes of XML become 129 bytes of EXI.
+
+EXIFormat is the Julia version of [rexi](https://github.com/nhenehan/rexi), and
+writes the same bytes. Up to version 0.2.0 it was called JExi.
+
+**Supported profile:** EXI 1.0 (Second Edition), schema-informed, strict,
+bit-packed or byte-aligned, with or without the `$EXI` cookie, and options in the
+header or agreed out of band (the smallest form has a one-byte header). Whole
+documents.
+
+## Installation
+
+The package can be installed with Julia's package manager. In the Pkg REPL (press
+`]` to enter it):
+
+```
+pkg> add EXIFormat
+```
+
+or with Pkg functions: `using Pkg; Pkg.add("EXIFormat")`. EXIFormat needs Julia
+1.10 or newer. It has no exports, so every name is written `EXIFormat.name`.
 
 ## Quick example
 
@@ -34,97 +55,94 @@ println(back)
 
 It prints `538 bytes of XML became 129 bytes of EXI`, then the XML.
 
-## Add to your project
-
-```julia
-using Pkg
-Pkg.add("EXIFormat")
-```
-
-To work on EXIFormat itself, clone it and use the clone instead:
-`Pkg.develop(path = "path/to/EXIFormat.jl")`. [CONTRIBUTING.md](CONTRIBUTING.md)
-explains the tests and tools.
-
-EXIFormat needs Julia 1.10 or newer. It has no exports, so every name is written
-`EXIFormat.name`.
-
 ## Learn more
 
-- **The user guide**, in [`guide/`](guide/src/introduction.md), walks through
-  the examples one at a time, from a first round trip to prebuilt tables. To
-  read it in a browser, install [mdbook](https://rust-lang.github.io/mdBook/)
-  and mdbook-mermaid, then run
-  `mdbook-mermaid install guide && mdbook serve guide`.
-- **The examples**, in [`examples/basics`](examples/basics/README.md), are
-  small scripts, one idea each. Each has a Rust twin in rexi that prints the
-  same output.
-- **The command line** encodes and decodes files and lists a schema's grammars.
-  In a clone, run [`bin/exiformat`](bin/exiformat) `--help`. With the package
-  installed, run
-  `julia -e 'using EXIFormat; exit(EXIFormat.CLI.main(ARGS))' -- --help`.
+- **[The documentation](https://nhenehan.github.io/EXIFormat.jl/stable)** has a manual that works through one small
+  example per idea, from a first round trip to prebuilt tables, and an API
+  reference for every public name.
+- **[`examples/basics`](examples/basics/README.md)** contains the manual's
+  scripts. Each has a Rust twin in rexi that prints the same output.
+- **The command line** encodes and decodes files and lists a schema's grammars:
+  `bin/exiformat --help` in a clone, or
+  `julia -e 'using EXIFormat; exit(EXIFormat.CLI.main(ARGS))' -- --help` with the
+  package installed.
 
-## What it does
+## EXI 1.0 implementation
 
-- Turns XML Schemas (with `xs:include`, `xs:import`, groups, derived types,
-  substitution groups and `xs:all`) into grammar tables.
-- Encodes and decodes XML text, one event at a time, or your own Julia
-  structs (`to_exi` / `from_exi`).
-- Writes the tables as a Julia module ahead of time (`EXIFormat.SchemaGen`), so
-  they precompile into your package.
-- Writes the same bytes as EXIficient, the reference Java library, for every
-  interop test case in the strict profiles.
-- Refuses anything it does not support with an `UnsupportedError`. It never
-  quietly writes something close enough.
+What the codec can encode and decode.
 
-## What it doesn't do yet
+| EXI feature | Status | Notes |
+|---|---|---|
+| Schema-informed grammars | Supported | Compiled from XML Schema, with `xs:include`, `xs:import`, groups, derived types, substitution groups and `xs:all` |
+| Strict mode | Supported | Documents must match the schema |
+| Bit-packed encoding | Supported | |
+| Byte-aligned encoding | Supported | |
+| EXI header | Supported | Optional `$EXI` cookie; options document in the header |
+| Out-of-band options | Supported | |
+| Restricted character sets | Partial | When the `xs:pattern` alphabet can be read |
+| Fragments | Not supported | `fragment = true` is refused (rexi 0.3 has them) |
+| Schema-less / built-in grammars | Not supported | |
+| Non-strict mode | Not supported | |
+| Compression | Not supported | |
+| Pre-compression | Not supported | |
+| Wildcards | Not supported | `xs:any`, `xs:anyAttribute` |
+| `Preserve.lexicalValues` | Not supported | |
+| `datatypeRepresentationMap` | Not supported | Uses standard datatype representations |
+| `xs:redefine`, `xs:override`, `xs:notation` | Not supported | Refused when the schema is compiled |
+| Preserve comments, PIs, DTD, prefixes | Not allowed in strict mode | EXI forbids them together with `strict` ([EXI 5.4](https://www.w3.org/TR/exi/#options)) |
+| `selfContained` | Not allowed in strict mode | Same rule |
 
-- **Compression and pre-compression.** They regroup the values and add
-  DEFLATE, a large separate piece of work.
-- **Schema-less streams.** EXIFormat needs your schema; the built-in grammars for
-  streams without one are not written yet.
-- **Non-strict mode.** Documents that stray from the schema need extra grammar
-  rules everywhere, which EXIFormat does not build.
-- **Preserve options.** Strict mode drops comments, processing instructions,
-  DTDs and prefixes by design; keeping lexical values is not done yet.
-- **Wildcards** (`xs:any`, `xs:anyAttribute`). The stream must then carry the
-  name of the element or attribute, and that path is not built yet. Documents
-  that don't use the wildcard work.
-- **Unreadable patterns on restricted strings.** When an `xs:pattern` cannot
-  be parsed, the alphabet of its restricted character set is unknown, and its
-  values are refused (more below).
-- **Fragments.** EXIFormat encodes whole documents with one root element;
-  `fragment = true` is refused with `UnsupportedError`. (rexi 0.3 encodes
-  schema-informed fragments.)
-- **`xs:redefine`, `xs:override` and `xs:notation`** in a schema are refused
-  when the schema is compiled.
-- **selfContained.** The EXI spec does not allow it together with strict.
-- **datatypeRepresentationMap.** It swaps in other encodings for datatypes; it
-  is rarely used, and every reader would need the same map.
+Every "Not supported" or "Not allowed" row fails with an `UnsupportedError` that
+names the feature. EXIFormat never quietly writes something "close enough". A
+schema that uses a wildcard or an unreadable pattern still compiles; only
+documents that use that part are refused.
 
-The schema still compiles when it uses a wildcard or an unreadable pattern.
-The refusal happens only when a document uses that part, so a large schema
-with one such spot still works.
+For restricted character sets, EXI has a compact form when an `xs:pattern` limits
+a string to fewer than 256 characters
+([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet)). EXIFormat uses it
+when it can read the alphabet, and its bytes equal EXIficient 1.0.7's, except for
+a character outside the BMP, which EXIficient counts as two UTF-16 units. When a
+pattern can't be read, values of that type are refused rather than guessed.
 
-Restricted character sets ([EXI 7.1.10.1](https://www.w3.org/TR/exi/#restrictedCharSet))
-are supported. One comes from a string type whose `xs:pattern` allows fewer
-than 256 characters, all in the BMP, such as `[A-Z]{2}[0-9]{4}`; each
-character is then written as an n-bit index into that alphabet, in code point
-order, and a character outside it as an escape and its code point. The bytes
-equal EXIficient 1.0.7's, bit-packed and byte-aligned, except for a character
-outside the BMP: EXIficient counts it as two UTF-16 units and writes its low
-surrogate as a second character, where the spec counts one character. Patterns
-with a large alphabet (`\d+`, `\p{L}+`, `.*`, `[^x]`, anything outside the
-BMP) are not restricted and stay plain strings.
+## Julia library features
+
+| Feature | Names | Description |
+|---|---|---|
+| Schema compiler | `compile_files`, `compile_string` | XSD to grammar tables at run time |
+| Prebuilt tables | `EXIFormat.SchemaGen` | Tables written as a Julia module, precompiled with your package |
+| XML conversion | `encode_xml`, `decode_to_xml` | XML text to EXI and back |
+| Events | `Encoder`, `Decoder` | Write or read a stream one event at a time |
+| Structs | `to_exi`, `from_exi` | Your own Julia types, laid out by the schema |
+| Command line | `bin/exiformat` | Encode, decode, dump grammars, benchmark |
+
+## Conformance and interoperability
+
+Test results from the full test gate (`scripts/gate.sh`, on Julia 1.10 and 1.12,
+with the exip judges required).
+
+| Test | Profiles | Result |
+|---|---|---|
+| Encode, compared with EXIficient 1.0.7's bytes | strict bit-packed; strict bit-packed with options in the header; strict byte-aligned | Same bytes |
+| Decode EXIficient's streams, compared with EXIficient's events | the same | Same events |
+| Re-encode the decoded events | the same | Same bytes |
+| exip's decoder (exipd) reads EXIFormat's output | strict bit-packed; strict byte-aligned | Accepted |
+| Grammar tables compared with rexi's (`rexi dump-grammar`) | every fixture schema | The same |
+
+[rexi-interop](https://github.com/nhenehan/rexi-interop) is a separate matrix, run
+by hand, where EXIficient, Nagasena, Nagasena for .NET, exip, rexi and EXIFormat
+encode and decode each other's streams. EXIFormat matches rexi in every strict
+case.
 
 ## Safe with untrusted data
 
-EXI is compact, so a few bytes can ask for a huge amount of work. The decoder
-has four limits, on by default, and stops with a `LimitError` when a stream
-goes past one. Schemas have rules too: `xs:include` and `xs:import` read only
-regular local files under the main schema's folder, and a schema's grammars
-may only grow so large. The guide chapter
-[Untrusted input](guide/src/untrusted-input.md) explains each one and how to
-change it.
+EXI is compact, so a few bytes can ask a decoder for a lot of work, such as a list
+of four billion items or endless nesting. EXIFormat's decoder has four limits, on
+by default, that stop this early with a `LimitError`. Schema loading has limits
+too: `xs:include` and `xs:import` read only regular local files under the main
+schema's folder, never a URL, and one type's grammar may only grow so large.
+
+See the manual's [Untrusted input](https://nhenehan.github.io/EXIFormat.jl/stable/manual/untrusted-input/) chapter to
+change either.
 
 ## Thanks
 
@@ -148,10 +166,6 @@ behind it, and that work made this project possible.
 
 Thank you.
 
-## License
-
-BSD-3-Clause, see [LICENSE](LICENSE).
-
 ## How this was made
 
 EXIFormat was written with the help of an AI coding tool (Claude Code), working
@@ -160,8 +174,10 @@ bytes must match EXIficient 1.0.7 and rexi bit for bit, the decoded events must
 match EXIficient's, and the test suite runs on Julia 1.10 and 1.12. I
 understand and maintain the code, and I answer for it.
 
-## Working on EXIFormat
+## License
 
-How the code is laid out, how to run the tests, and where the reference files
-come from: [CONTRIBUTING.md](CONTRIBUTING.md). Notes for AI coding agents:
+BSD-3-Clause, see [LICENSE](LICENSE).
+
+For the code layout, tests, reference files and docs build, see
+[CONTRIBUTING.md](CONTRIBUTING.md). Notes for AI coding agents are in
 [AGENTS.md](AGENTS.md).

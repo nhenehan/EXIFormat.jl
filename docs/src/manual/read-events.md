@@ -4,7 +4,7 @@ In this chapter you'll read a stream one piece at a time and get typed values,
 not text.
 
 `decode_to_xml` is handy, but sometimes you want the data, not the text. The
-**pull decoder** hands you one [event](glossary.md#event) at a time: the start
+**pull decoder** hands you one [event](@ref "Event") at a time: the start
 of an element, an attribute, some content, or the end of an element.
 
 ```mermaid
@@ -17,27 +17,12 @@ A `Decoder` is an iterator, so a `for` loop walks the whole document. Each event
 is a small struct (`StartElement`, `Attribute`, `Characters`, ...), so you can
 check its kind with `isa`:
 
-```julia
-{{#include ../../examples/basics/read_events.jl:main}}
+```@setup read-events
+#! setup read_events.jl
 ```
 
-Output (shortened):
-
-```text
-start document
-Order
-  @orderId = ORD-2026-0007 (string)
-  @priority = true (boolean)
-  Customer
-    ...
-  Item
-    @sku = BK-001 (string)
-    Quantity
-      2 (integer)
-    Price
-      42.95 (decimal)
-  ...
-end document
+```@example read-events
+#! include read_events.jl main
 ```
 
 ## What to notice

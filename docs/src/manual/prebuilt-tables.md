@@ -5,7 +5,7 @@ Julia code, so your program starts fast.
 
 Up to now, every script read and compiled `order.xsd` when it started. You can
 do that work once and save the
-[grammar tables](glossary.md#grammar-grammar-tables):
+[grammar tables](@ref "Grammar, grammar tables"):
 
 ```julia
 import EXIFormat
@@ -26,20 +26,18 @@ flowchart LR
 The result is a module with a constant `GRAMMARS`. Use it anywhere you used
 compiled tables:
 
-```julia
-{{#include ../../examples/basics/prebuilt_tables.jl:main}}
+```@setup prebuilt-tables
+#! setup prebuilt_tables.jl
 ```
 
-```text
-EXI: 129 bytes
-same bytes with compiled and prebuilt tables: true
-decoded with prebuilt tables: <Order xmlns="urn:rexi:interop:order" orderId="ORD-2026-0007" priority="true">...
+```@example prebuilt-tables
+#! include prebuilt_tables.jl main
 ```
 
 ## Why bother?
 
 - **No start-up cost.** Include the file in your package and the tables are
-  [precompiled](glossary.md#precompile) with it.
+  [precompiled](@ref "Precompile") with it.
 - **No XSD files to ship.** The schema is built into your code.
 - **Fast names.** The module also has a constant for every name, such as
   `OrderTables.LN_ORDER`. `EXIFormat.start_element!(enc, OrderTables.LN_ORDER)` skips

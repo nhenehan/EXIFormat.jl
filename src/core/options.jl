@@ -1,6 +1,15 @@
 # EXI options (https://www.w3.org/TR/exi/#options) and the header settings.
 
-"""How values are laid out in the body (https://www.w3.org/TR/exi/#key-alignmentOption)."""
+"""
+    Alignment
+
+How values are laid out in the body
+([EXI 5.4](https://www.w3.org/TR/exi/#key-alignmentOption)):
+
+- `ALIGN_BIT_PACKED`: packed bit by bit, the smallest form (the default).
+- `ALIGN_BYTE_ALIGNED`: every event code and value starts on a byte boundary.
+- `ALIGN_PRE_COMPRESSION`: not supported; refused with an `UnsupportedError`.
+"""
 @enum Alignment::UInt8 ALIGN_BIT_PACKED ALIGN_BYTE_ALIGNED ALIGN_PRE_COMPRESSION
 
 """Which parts of the XML the stream keeps (https://www.w3.org/TR/exi/#fidelityOptions)."""
@@ -14,8 +23,16 @@ end
 
 any_preserve(p::Preserve) = p.dtd || p.prefixes || p.lexical_values || p.comments || p.pis
 
-"""The `schemaId` option set to `xsi:nil="true"` (https://www.w3.org/TR/exi/#key-schemaIdOption)."""
+"""The type of [`SCHEMA_ID_NIL`](@ref)."""
 struct SchemaIdNil end
+
+"""
+    SCHEMA_ID_NIL
+
+The `schemaId` option set to `xsi:nil="true"`
+([EXI 5.4](https://www.w3.org/TR/exi/#key-schemaIdOption)): the stream says it was
+written without a schema.
+"""
 const SCHEMA_ID_NIL = SchemaIdNil()
 
 """

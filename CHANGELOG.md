@@ -2,6 +2,10 @@
 
 ## 0.2.1
 
+- **Documentation** built with Documenter.jl and published at
+  https://nhenehan.github.io/EXIFormat.jl: the manual (the former mdbook guide, now running its
+  examples), an API reference for every public name, and an appendix. CI runs
+  the tests on Julia 1.10 and the latest release, and builds the docs.
 - **New name: EXIFormat** (it was JExi up to 0.2.0), so that it can be added to
   Julia's General registry. Write `using EXIFormat` and `EXIFormat.encode_xml`.
   The command line tool is `bin/exiformat`, and its environment variables and

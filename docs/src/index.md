@@ -1,13 +1,13 @@
-# Welcome
+# EXIFormat.jl
 
-This guide shows you how to turn XML into EXI and back from Julia, one small
-example at a time.
+EXIFormat turns XML into small, fast binary messages and back, in Julia. This
+manual shows you how, one small example at a time.
 
 **EXI** (Efficient XML Interchange) is a W3C standard for sending XML as
 compact binary. The order in this guide's examples is 538 bytes of XML and only
 129 bytes of EXI.
 
-The trick is that both sides share the XML [schema](glossary.md#schema). Each
+The trick is that both sides share the XML [schema](@ref "Schema"). Each
 side knows which elements and attributes can come next, and what type each
 value has. So the stream does not have to spell out names or write numbers as
 text.
@@ -23,12 +23,37 @@ flowchart LR
     dec --> out[XML, events or structs]
 ```
 
-New to EXI? [Words you'll see](glossary.md) explains the terms in one or two
+New to EXI? [Words you'll see](manual/glossary.md) explains the terms in one or two
 lines each.
+
+## Installation
+
+EXIFormat needs Julia 1.10 or newer. In the Pkg REPL (press `]`):
+
+```
+pkg> add EXIFormat
+```
+
+or with `using Pkg; Pkg.add("EXIFormat")`.
+
+## Quick start
+
+```@setup home
+#! setup roundtrip.jl
+```
+
+```@example home
+tables = EXIFormat.compile_files(data("order.xsd"))   # once
+xml = read(data("order.xml"), String)
+options = EXIFormat.strict_options()
+exi = EXIFormat.encode_xml(xml, tables; options)
+back = EXIFormat.decode_to_xml(exi, tables; options)
+println(sizeof(xml), " bytes of XML became ", length(exi), " bytes of EXI")
+```
 
 ## What you will learn
 
-Each chapter follows one small script in `examples/basics`, from easiest to
+Each chapter of the manual follows one small script in `examples/basics`, from easiest to
 hardest:
 
 1. **Round trip**: XML to EXI and back in three calls.
@@ -43,9 +68,17 @@ can read the two languages side by side.
 
 ## What EXIFormat does not do (yet)
 
-EXIFormat works in [strict](glossary.md#strict-non-strict), schema-informed mode
+EXIFormat works in [strict](@ref "Strict, non-strict"), schema-informed mode
 only. That is the most compact form EXI offers. Compression, schema-less
 streams, non-strict mode, the "preserve" options (comments, prefixes and so
 on), wildcards (`xs:any`, `xs:anyAttribute`) and fragments are refused with a
 clear error. EXIFormat never quietly does something close
 enough instead.
+
+## Where to go next
+
+- The **Manual** starts with [Getting started](manual/getting-started.md).
+- The **API reference** documents every public name, starting with
+  [Schemas and tables](api/schemas.md).
+- [EXIFormat and rexi side by side](appendix/side-by-side.md) maps each call to
+  the Rust version.

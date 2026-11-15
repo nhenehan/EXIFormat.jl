@@ -50,7 +50,7 @@ bin/exiformat bench encode|decode --xsd a.xsd [--warmup N --iterations N] in
 `bin/exiformat` takes rexi 0.2's command line (rexi 0.3 adds `--fragment`) and
 prints the same `bench` JSON, which is how the
 [rexi-interop](https://github.com/nhenehan/rexi-interop) harness drives both.
-Speed notes are in [`doc/performance.md`](doc/performance.md).
+Speed notes are in the docs appendix ([`docs/src/appendix/performance.md`](docs/src/appendix/performance.md)).
 
 ## Julia versions
 
@@ -67,6 +67,30 @@ It is never committed: `scripts/fetch-standards.sh` downloads it into
 `${EXIFORMAT_STANDARDS:-${XDG_CACHE_HOME:-~/.cache}/exiformat/standards}`. Without it,
 `Pkg.test("EXIFormat")` skips those tests with a warning. The gate sets
 `EXIFORMAT_REQUIRE_JUDGES=1`, which makes them required.
+
+## Docs
+
+The documentation is built with [Documenter.jl](https://documenter.juliadocs.org/)
+from `docs/`, and published to https://nhenehan.github.io/EXIFormat.jl: `/dev` from `main`, `/stable` from the
+latest version tag. The `docs` job of `.github/workflows/CI.yml` builds and
+deploys it.
+
+```bash
+julia --project=docs -e 'using Pkg; Pkg.instantiate()'   # once
+julia --project=docs docs/make.jl                        # writes docs/build
+```
+
+- `docs/src/manual` holds the chapters. Their code comes from the scripts in
+  `examples/basics`: a fenced block holding `#! include roundtrip.jl main`
+  gets that script's `# ANCHOR: main` region, and `#! setup roundtrip.jl` the
+  script's imports, for a hidden `@setup` block. Documenter runs the
+  `@example` blocks, so the pages always show the scripts' real output. Never
+  paste code or output into a page.
+- `docs/src/api` lists every public name in `@docs` blocks. EXIFormat has no
+  exports, so a new public name must be added there by hand; the build fails
+  when a listed name has no docstring or a cross-reference does not resolve.
+- Deploying needs the `DOCUMENTER_KEY` secret and its deploy key (made once with
+  `DocumenterTools.genkeys`).
 
 ## Reference fixtures
 

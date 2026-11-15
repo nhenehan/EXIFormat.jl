@@ -30,7 +30,7 @@ Use `encode_xml` and `decode_to_xml` when the application works with XML documen
 3. Pick the options (`strict_options(; ...)`) and header settings (`HeaderConfig`).
 4. Encode, and decode with the same tables and options.
 
-See `examples/basics` and the user guide in `guide/`.
+See `examples/basics` and the manual in `docs/src/manual`.
 
 ### Julia structs
 
@@ -106,7 +106,7 @@ A change in encoding or decoding behaviour should land in rexi and EXIFormat tog
 Before changing an interface or implementation:
 
 1. Read the relevant part of `src/` and its docstrings.
-2. Check the user guide and the examples.
+2. Check the manual and the examples.
 3. Keep the same layering as rexi's crates.
 4. Prefer extending an existing function over adding a parallel one.
 5. Add tests for both the supported behaviour and the failure cases.
@@ -131,7 +131,7 @@ Changes to encoding or decoding need interoperability tests (reference bytes and
 
 Keep the README about what EXIFormat does and how to use it. Keep development, testing and maintenance steps in `CONTRIBUTING.md`.
 
-Update the user guide (`guide/`, mdbook) when a public function or user-facing behaviour changes. Each example in `examples/basics` has a twin in rexi's `examples/basics` that prints the same output; rexi's `examples/basics/compare.sh` checks them. Keep both in step.
+Update the docs (`docs/`, Documenter.jl) when a public function or user-facing behaviour changes: the manual in `docs/src/manual`, and the API reference in `docs/src/api`, which lists every public name by hand (EXIFormat has no exports). Every public name needs a docstring that starts with its signature. Manual pages take their code from `examples/basics` with `#! include` lines (see `docs/make.jl`); never paste code or output into them. Each example in `examples/basics` has a twin in rexi's `examples/basics` that prints the same output; rexi's `examples/basics/compare.sh` checks them. Keep both in step.
 
 Prefer direct technical explanations over marketing language.
 

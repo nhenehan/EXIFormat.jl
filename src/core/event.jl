@@ -16,6 +16,7 @@ struct StartElement <: Event
     local_name::String
 end
 
+"""`EE`: the end of the current element."""
 struct EndElement <: Event end
 
 """`AT`: an attribute and its value (a typed value or a [`Lexical`](@ref))."""
@@ -69,6 +70,14 @@ end
 """`{uri}local`, or just `local` when the URI is empty."""
 qname_text(uri::AbstractString, local_name::AbstractString) =
     isempty(uri) ? String(local_name) : string('{', uri, '}', local_name)
+
+"""
+    event_name(event) -> String
+
+The event's short name as the EXI specification writes it, such as `SD`,
+`SE({uri}local)`, `AT(local)` or `CH` (the same text as rexi and EXIficient print).
+"""
+function event_name end
 
 event_name(::StartDocument) = "SD"
 event_name(::EndDocument) = "ED"

@@ -56,7 +56,7 @@ bigger but easier to read in a hex dump.
 EXI remembers each string it has written. When the same string comes again, it
 writes a short number that points back to it, not the whole string.
 
-## Text ("lexical") value
+## [Text ("lexical") value](@id lexical)
 
 A value written as text, the way it looks in an XML file, such as `"42.95"`.
 The EXI spec calls this the **lexical** form. EXIFormat parses it into the schema's

@@ -1,6 +1,6 @@
 # EXIFormat basics
 
-Small scripts, one idea each, in the order the [user guide](../../guide/src/introduction.md)
+Small scripts, one idea each, in the order the [manual](https://nhenehan.github.io/EXIFormat.jl/stable/)
 uses. Each one has a Rust twin in `rexi/examples/basics` that prints exactly the
 same output, so you can compare the two side by side.
 

@@ -12,28 +12,21 @@ flowchart LR
     T --> C
 ```
 
-```julia
-{{#include ../../examples/basics/roundtrip.jl:main}}
+```@setup roundtrip
+#! setup roundtrip.jl
 ```
 
-Output:
-
-```text
-XML: 538 bytes
-EXI: 129 bytes
-  80 07 a7 a9 22 16 99 18 19 1b 16 98 18 18 1b a0
-  ...
-decoded XML:
-<Order xmlns="urn:rexi:interop:order" orderId="ORD-2026-0007" priority="true">...
+```@example roundtrip
+#! include roundtrip.jl main
 ```
 
 ## What to notice
 
 - **Compile the schema once.** `compile_files` makes the
-  [grammar tables](glossary.md#grammar-grammar-tables). It is the slowest step,
+  [grammar tables](@ref "Grammar, grammar tables"). It is the slowest step,
   so keep the tables and reuse them for every document.
 - **The decoder needs the same options.** Here the
-  [options](glossary.md#options) are not written into the stream (that keeps
+  [options](@ref "Options") are not written into the stream (that keeps
   it small), so `decode_to_xml` is told them. The next chapter shows the other
   way.
 - **Values come back in standard form.** The price `31.50` comes back as
