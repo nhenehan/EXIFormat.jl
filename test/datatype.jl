@@ -81,11 +81,10 @@ J.enum_value(::Mock, set::Integer, i::Integer) = 0 <= i < length(mock_set(set)) 
             UInt8[0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0x01],
             UInt8[0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01],
             UInt8[0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x02])
-        for bytes in cases
-            a = J.read_unsigned_any!(reader(bytes))
-            b = reference(bytes)
-            @test a == b && typeof(a) == typeof(b)
-        end
+        # One @test for all inputs; a failure lists the inputs that differ.
+        differ(bytes) = (a = J.read_unsigned_any!(reader(bytes)); b = reference(bytes);
+                         !(a == b && typeof(a) == typeof(b)))
+        @test first(filter(differ, cases), 10) == Vector{UInt8}[]
         @test_throws J.TruncatedError J.read_unsigned_any!(reader(UInt8[0x80, 0x80]))
     end
 
@@ -103,6 +102,8 @@ J.enum_value(::Mock, set::Integer, i::Integer) = 0 <= i < length(mock_set(set)) 
         for b in 0:63
             push!(values, UInt64(1) << b, (UInt64(1) << b) - 1, (UInt64(1) << b) + 1)
         end
+        # Every value at every bit offset; one @test, listing the cases that differ.
+        bad = Tuple{Int,UInt64}[]
         for offset in 0:7, v in values
             a = J.BitWriter()
             b = J.BitWriter()
@@ -110,9 +111,9 @@ J.enum_value(::Mock, set::Integer, i::Integer) = 0 <= i < length(mock_set(set)) 
             J.write_raw_bits!(b, UInt64(0x55), offset)
             J.write_unsigned!(a, v)
             reference!(b, v)
-            @test J.bit_position(a) == J.bit_position(b)
-            @test J.finish!(a) == J.finish!(b)
+            J.bit_position(a) == J.bit_position(b) && J.finish!(a) == J.finish!(b) || push!(bad, (offset, v))
         end
+        @test first(bad, 10) == Tuple{Int,UInt64}[]
     end
 
     @testset "integer: exip vectors" begin

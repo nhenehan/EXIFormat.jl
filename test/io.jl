@@ -117,11 +117,15 @@ end
     @testset "same output as the bit-by-bit writer" begin
         state = Ref(0x5eed_1234_abcd_ef01)
         next() = xorshift(state)
-        for _ in 1:2000
+        # 2000 random write sequences, compared with the reference after every
+        # write. One @test for all of them; a failure lists the first sequences
+        # (and the write in each) where the two differ.
+        bad = Tuple{Int,Int}[]
+        for seq in 1:2000
             aligned = next() % 2 == 0
             a = BitWriter(; byte_aligned = aligned)
             b = RefWriter(aligned)
-            for _ in 1:(next() % 40)
+            for step in 1:(next() % 40)
                 r = next()
                 v = next()
                 op = r % 7
@@ -155,11 +159,13 @@ end
                     ref_align!(b)
                     b.byte_aligned = flag
                 end
-                @test bit_position(a) == length(b.bits)
-                @test a.out == complete_bytes(b)
+                if bit_position(a) != length(b.bits) || a.out != complete_bytes(b)
+                    push!(bad, (seq, step))
+                end
             end
-            @test finish!(a) == ref_bytes(b)
+            finish!(a) == ref_bytes(b) || push!(bad, (seq, 0))
         end
+        @test first(unique(first.(bad)), 10) == Int[]
     end
 
     @testset "exip test_readBits vector" begin
