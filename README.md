@@ -13,7 +13,8 @@ already says don't need to be repeated in every message. In the manual's
 example, 538 bytes of XML become 129 bytes of EXI.
 
 EXIFormat is the Julia version of [rexi](https://github.com/nhenehan/rexi), and
-writes the same bytes. Up to version 0.2.0 it was called JExi.
+writes the same bytes. It was called JExi up to JExi 0.2.0; the version numbers
+started again at 0.1.0 with the new name.
 
 **Supported profile:** EXI 1.0 (Second Edition), schema-informed, strict,
 bit-packed or byte-aligned, with or without the `$EXI` cookie, and options in the

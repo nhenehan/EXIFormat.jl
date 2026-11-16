@@ -1,4 +1,4 @@
-# Performance (measured 2026-11-05, before 0.2.0)
+# Performance (measured 2026-11-05, before JExi 0.2.0)
 
 Measured on 2026-11-05 on an AMD Ryzen 7 7840U, Linux 7.2.6, Julia 1.12.7,
 with the [rexi-interop](https://github.com/nhenehan/rexi-interop) harness:

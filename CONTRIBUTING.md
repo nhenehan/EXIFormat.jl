@@ -2,7 +2,7 @@
 
 ## Status
 
-0.2.1 has the scope of rexi 0.2, plus rexi 0.3.1's handling of an `xsi:type`
+0.1.0 has the scope of rexi 0.2, plus rexi 0.3.1's handling of an `xsi:type`
 that names no type in the schema. rexi 0.3 also encodes schema-informed
 fragments; EXIFormat does not yet.
 

@@ -1,12 +1,17 @@
 # Changelog
 
-## 0.2.1
+## 0.1.0
+
+The first release as EXIFormat, and the first in Julia's General registry. The
+version numbers start again with the new name: the JExi releases below (0.1.0
+and 0.2.0, on GitHub only) are the same package's history. EXIFormat 0.1.0 has
+everything JExi 0.2.0 had, plus:
 
 - **Documentation** built with Documenter.jl and published at
   https://nhenehan.github.io/EXIFormat.jl: the manual (the former mdbook guide, now running its
   examples), an API reference for every public name, and an appendix. CI runs
   the tests on Julia 1.10 and the latest release, and builds the docs.
-- **New name: EXIFormat** (it was JExi up to 0.2.0), so that it can be added to
+- **New name: EXIFormat** (it was JExi, up to JExi 0.2.0), so that it can be added to
   Julia's General registry. Write `using EXIFormat` and `EXIFormat.encode_xml`.
   The command line tool is `bin/exiformat`, and its environment variables and
   cache folder are `EXIFORMAT_*` and `~/.cache/exiformat`. Nothing else changes.
@@ -23,7 +28,7 @@
   `scripts/fetch-standards.sh` downloads the dated W3C Recommendation and takes
   the schema out of it, checked by sha256 against `standards.lock`.
 
-## 0.2.0
+## JExi 0.2.0
 
 - The decoder checks the stream's `schemaId` option against the tables'
   ([EXI 5.4](https://www.w3.org/TR/exi/#options)), in `Decoder` and in
@@ -53,7 +58,7 @@
   `SchemaGen` writes it. Tables generated before this change hold restricted
   kinds with no alphabet, which behave as before (refused); regenerate them.
 
-## 0.1.0
+## JExi 0.1.0
 
 First release. JExi encodes and decodes schema-informed, strict EXI 1.0 in
 native Julia. It is a port of [rexi](https://github.com/nhenehan/rexi) and
