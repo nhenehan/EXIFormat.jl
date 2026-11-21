@@ -176,7 +176,12 @@ function next!(dec::Decoder)
         # A fragment goes back to FragmentContent for the next element.
         isempty(dec.frames) && !dec.options.fragment && (dec.cursor = CUR_DOC_END)
         return EV_EE
-    elseif k == T_SE_ANY || k == T_SE_NS || k == T_AT_ANY || k == T_AT_NS || k == T_AT_ANY_UNTYPED
+    elseif k == T_SE_ANY || k == T_SE_NS
+        return wildcard_element!(dec, f, prod)
+    elseif k == T_AT_ANY || k == T_AT_NS
+        return wildcard_attribute!(dec, f, prod)
+    elseif k == T_AT_ANY_UNTYPED
+        # AT(*) with an untyped value appears only in non-strict grammars.
         throw(UnsupportedError(FEATURE_WILDCARD))
     end
     throw(GrammarError("a strict schema-informed production", string(k)))
@@ -202,6 +207,48 @@ element, `n` is `SE(*)` and `n + 1` is `ED`.
     e.elem == NONE && throw(UnsupportedError(FEATURE_RELAXED_ELEMENT_GRAMMAR))
     push_element!(dec, e.elem)
     return EV_SE
+end
+
+"""
+Reads the name after a wildcard production: the whole QName after `SE(*)` /
+`AT(*)`, only the local name after `SE(uri:*)` / `AT(uri:*)`
+(https://www.w3.org/TR/exi/#encodingQName).
+"""
+function read_wildcard_name!(dec::Decoder, t::Terminal)
+    (t.kind == T_SE_NS || t.kind == T_AT_NS) && return QNameId(t.a, read_local_name!(dec.strings, dec.inp, t.a))
+    return read_qname!(dec.strings, dec.inp)
+end
+
+"""
+`SE(*)` or `SE(uri:*)` (https://www.w3.org/TR/exi/#elementTerms): the name, then
+the element's global declaration's grammar, as EXIficient does. A name with no
+global declaration would need a built-in grammar.
+"""
+@noinline function wildcard_element!(dec::Decoder, f::Frame, prod::Production)
+    q = read_wildcard_name!(dec, prod.terminal)
+    elem = find_global_element(dec.tables, q)
+    elem === nothing && throw(UnsupportedError(FEATURE_BUILT_IN_ELEMENT_GRAMMAR))
+    set_top!(dec, with_rule(f, prod.next))
+    push_element!(dec, elem)
+    dec.qname = q
+    return EV_SE
+end
+
+"""
+`AT(*)` or `AT(uri:*)` (https://www.w3.org/TR/exi/#elementTerms): the name, then
+the value in the type of the attribute's global declaration, or as a string when
+there is none, as EXIficient does.
+"""
+@noinline function wildcard_attribute!(dec::Decoder, f::Frame, prod::Production)
+    q = read_wildcard_name!(dec, prod.terminal)
+    g = dec.tables
+    i = findfirst(a -> a.qname == q, g.global_attributes)
+    kind = i === nothing ? UNTYPED_KIND : dec.rt.kinds[Int(g.global_attributes[i].type_idx) + 1]
+    dec.last_kind = kind
+    dec.qname = q
+    dec.value = read_typed_value!(dec, kind, q)
+    set_top!(dec, with_rule(f, after_attribute_wildcard(f, prod.next)))
+    return EV_AT
 end
 
 function step_escape!(dec::Decoder, f::Frame)

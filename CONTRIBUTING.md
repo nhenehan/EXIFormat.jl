@@ -11,9 +11,11 @@ decode to EXIficient's event stream, re-encode from the decoded events, and are
 accepted by exipd, exip's decoder. The schema compiler makes the same tables as
 rexi for every fixture schema, and its EXIficient-format grammar dump equals
 EXIficient's. In the [rexi-interop](https://github.com/nhenehan/rexi-interop)
-matrix, EXIFormat matches rexi in every strict case. Wildcards are refused with
-`UnsupportedError(FEATURE_WILDCARD)`, and restricted strings whose pattern does
-not parse with `UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
+matrix, EXIFormat matches rexi in every strict case. Wildcards work as in rexi
+with its `wildcard` feature; a wildcard element with no global declaration is
+refused with `UnsupportedError(FEATURE_BUILT_IN_ELEMENT_GRAMMAR)`, and restricted
+strings whose pattern does not parse with
+`UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
 
 ## Layout
 

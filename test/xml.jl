@@ -250,9 +250,11 @@ end
         end
     end
 
-    @testset "wildcards are refused as wildcards" begin
-        # xs:any and xs:anyAttribute are strict, schema-declared productions, so they
-        # must not be reported as non-strict or as built-in grammars.
+    @testset "wildcards" begin
+        # xs:any and xs:anyAttribute: SE(*), SE(uri:*), AT(*) and AT(uri:*) in strict
+        # mode (https://www.w3.org/TR/exi/#elementTerms), ported from rexi's
+        # tests/wildcards.rs (its `wildcard` feature). The bytes are checked against
+        # EXIficient by the W3C wildcard cases (scripts/w3c-strict.py).
         g = J.compile_string("""<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
           <xs:attribute name="g" type="xs:int"/>
           <xs:element name="root"><xs:complexType>
@@ -267,20 +269,40 @@ end
         catch e
             e isa J.UnsupportedError ? e.feature : nothing
         end
-        for x in ("""<root g="5"/>""", "<root><leaf>3</leaf></root>")
-            @test feature(() -> J.encode_xml(x, g)) == J.FEATURE_WILDCARD
+        function round_trip(t, x, want)
+            for o in (J.strict_options(), J.strict_options(; alignment = J.ALIGN_BYTE_ALIGNED))
+                exi = J.encode_xml(x, t; options = o)
+                @test lexical(J.decode_events(exi, t; options = o)) == J.xml_events(want)
+            end
         end
-        @test !isempty(J.encode_xml("<root/>", g))
-        # Every choice of event codes after the root's start: some hit a wildcard,
-        # and only an undeclared root (codes 2 and 3, top bit set) is a built-in grammar.
-        wildcards = 0
-        for byte in 0x00:0xff
-            f = feature(() -> J.decode_events(UInt8[0x80, byte, 0x00], g; options = J.strict_options()))
-            f == J.FEATURE_WILDCARD && (wildcards += 1)
-            @test f != J.FEATURE_NON_STRICT_SCHEMA_INFORMED
-            f == J.FEATURE_BUILT_IN_ELEMENT_GRAMMAR && @test byte & 0x80 != 0
+        # Any element and any attribute.
+        round_trip(g, "<root/>", "<root/>")
+        round_trip(g, """<root g="5"/>""", """<root g="5"/>""")
+        round_trip(g, "<root><leaf>3</leaf></root>", "<root><leaf>3</leaf></root>")
+        # A name the schema does not know: the attribute is a string, and the name
+        # goes into the string table.
+        round_trip(g, """<root zz="hello" g="1"/>""", """<root g="1" zz="hello"/>""")
+        # A global attribute keeps its type: "+05" comes back as the integer 5; `h`
+        # has no declaration, so its text comes back as it was.
+        round_trip(g, """<root g="+05" h="+05"/>""", """<root g="5" h="+05"/>""")
+        @test_throws J.ValueError J.encode_xml("""<root g="five"/>""", g)
+        # An element with no global declaration needs a built-in grammar.
+        @test feature(() -> J.encode_xml("<root><other/></root>", g)) == J.FEATURE_BUILT_IN_ELEMENT_GRAMMAR
+        # A namespace wildcard takes only its namespace.
+        ns = J.compile_string("""<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            xmlns:w="urn:w" targetNamespace="urn:w" elementFormDefault="qualified">
+          <xs:attribute name="n" type="xs:int"/>
+          <xs:element name="item" type="xs:boolean"/>
+          <xs:element name="box"><xs:complexType>
+            <xs:sequence><xs:any namespace="##targetNamespace" maxOccurs="unbounded"/></xs:sequence>
+            <xs:anyAttribute namespace="##targetNamespace"/>
+          </xs:complexType></xs:element>
+        </xs:schema>""")
+        round_trip(ns, """<w:box xmlns:w="urn:w" w:n="7"><w:item>true</w:item><w:item>0</w:item></w:box>""",
+            """<w:box xmlns:w="urn:w" w:n="7"><w:item>true</w:item><w:item>false</w:item></w:box>""")
+        for x in ("""<w:box xmlns:w="urn:w" xmlns:v="urn:v" v:n="7"/>""", """<w:box xmlns:w="urn:w"><item>true</item></w:box>""")
+            @test_throws J.GrammarError J.encode_xml(x, ns)
         end
-        @test wildcards > 0
     end
 
     @testset "non-ASCII next to a byte-found separator" begin

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Wildcards, as in rexi with its `wildcard` feature: `xs:any` and
+  `xs:anyAttribute` in strict mode, `SE(*)`, `SE(uri:*)`, `AT(*)` and `AT(uri:*)`
+  ([EXI 8.5.4.1.6](https://www.w3.org/TR/exi/#elementTerms)). An element follows
+  its global declaration's grammar; one with no declaration still needs a
+  built-in grammar and is refused. An attribute takes its global declaration's
+  type, or is a string. The W3C wildcard cases give EXIficient's bytes and events
+  (16 of 17): 177 of 219 in all, the same cases as rexi.
 - Schema-informed fragments ([EXI 8.5.2](https://www.w3.org/TR/exi/#informedFragGrammars)),
   as in rexi 0.3.1: set the `fragment` option (`strict_options(; fragment = true)`)
   to encode and decode a run of root elements, each one any element the schema

@@ -86,7 +86,7 @@ What the codec can encode and decode.
 | Non-strict mode | Not supported | |
 | Compression | Not supported | |
 | Pre-compression | Not supported | |
-| Wildcards | Not supported | `xs:any`, `xs:anyAttribute` |
+| Wildcards | Supported | `xs:any`, `xs:anyAttribute`: elements with a global declaration, and any attribute (typed by its global declaration, or a string). An element with no global declaration needs a built-in grammar and is refused |
 | `Preserve.lexicalValues` | Not supported | |
 | `datatypeRepresentationMap` | Not supported | Uses standard datatype representations |
 | `xs:redefine`, `xs:override`, `xs:notation` | Not supported | Refused when the schema is compiled |
@@ -95,8 +95,8 @@ What the codec can encode and decode.
 
 Every "Not supported" or "Not allowed" row fails with an `UnsupportedError` that
 names the feature. EXIFormat never quietly writes something "close enough". A
-schema that uses a wildcard or an unreadable pattern still compiles; only
-documents that use that part are refused.
+schema that uses an unreadable pattern still compiles; only documents that use
+that part are refused.
 
 For restricted character sets, EXI has a compact form when an `xs:pattern` limits
 a string to fewer than 256 characters
@@ -128,7 +128,7 @@ with the exip judges required).
 | Re-encode the decoded events | the same | Same bytes |
 | exip's decoder (exipd) reads EXIFormat's output | strict bit-packed; strict byte-aligned | Accepted |
 | Grammar tables compared with rexi's (`rexi dump-grammar`) | every fixture schema | The same |
-| W3C EXI test suite, strict group (219 cases, `scripts/w3c-strict.py`, run by hand): encode, decode and re-encode, compared with EXIficient 1.0.7 | strict bit-packed; strict byte-aligned | 161 of 219 the same, the same cases as rexi. schemaValidDatatypes: 119 of 139; the others need schema-less streams (16), Preserve.prefixes (2) or non-strict mode (2). declaredProductions: 42 of 80; the others need wildcards (17), Preserve options (15), the element fragment grammar (4) or non-strict mode (2) |
+| W3C EXI test suite, strict group (219 cases, `scripts/w3c-strict.py`, run by hand): encode, decode and re-encode, compared with EXIficient 1.0.7 | strict bit-packed; strict byte-aligned | 177 of 219 the same, the same cases as rexi (with its `wildcard` feature). schemaValidDatatypes: 119 of 139; the others need schema-less streams (16), Preserve.prefixes (2) or non-strict mode (2). declaredProductions: 58 of 80; the others need Preserve options (15), the element fragment grammar (4), non-strict mode (2) or a built-in grammar for a wildcard element with no declaration (1) |
 
 [rexi-interop](https://github.com/nhenehan/rexi-interop) is a separate matrix, run
 by hand, where EXIficient, Nagasena, Nagasena for .NET, exip, rexi and EXIFormat

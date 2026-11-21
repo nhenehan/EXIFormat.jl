@@ -57,6 +57,15 @@ first_level_width(g::GrammarSet, f::Frame) =
 
 second_level_width(f::Frame) = ceil_log2(escape_count(f))
 
+"""
+The rule after `AT(*)` / `AT(uri:*)`: the production loops to the rule it is in
+(`Element_i,j : AT(*) Element_i,j`, https://www.w3.org/TR/exi/#elementTerms).
+The tables send the start rule's `AT(*)` to a copy of it without the `xsi:type`
+/ `xsi:nil` escapes; staying on the start rule keeps them, as EXIficient does
+(W3C complexType-05; rexi's `Frame::after_attribute_wildcard`).
+"""
+after_attribute_wildcard(f::Frame, next::RuleIdx) = f.rule == f.start_rule ? f.start_rule : next
+
 xsi_type_code(f::Frame) = (escape_count(f) > 0 && f.typecastable) ? 0 : nothing
 xsi_nil_code(f::Frame) = (escape_count(f) > 0 && f.nillable) ? Int(f.typecastable) : nothing
 
