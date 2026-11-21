@@ -14,6 +14,7 @@ struct Mock end
 const COLOURS = ["red", "green", "blue"]
 const NUMBERS = ["1", "2", "3", "10"]
 const DECIMALS = ["1.0", "2.5"]
+const FLOATS = ["1.0", "0.250e2"]
 function J.datatype(::Mock, t::Integer)
     t == 0 && return J.INTEGER_KIND
     t == 1 && return J.string_kind(J.WS_COLLAPSE)
@@ -25,7 +26,7 @@ function J.datatype(::Mock, t::Integer)
     t == 7 && return J.enum_kind(1, 0)
     return J.enum_kind(2, 3)
 end
-mock_set(set) = set == 0 ? COLOURS : set == 1 ? NUMBERS : DECIMALS
+mock_set(set) = set == 0 ? COLOURS : set == 1 ? NUMBERS : set == 3 ? FLOATS : DECIMALS
 J.enum_count(::Mock, set::Integer) = length(mock_set(set))
 J.enum_value(::Mock, set::Integer, i::Integer) = 0 <= i < length(mock_set(set)) ? mock_set(set)[i + 1] : nothing
 
@@ -596,6 +597,15 @@ J.enum_value(::Mock, set::Integer, i::Integer) = 0 <= i < length(mock_set(set)) 
         @test_throws J.ValueError J.parse_lexical(J.QNAME_KIND, "a:b", m)
         @test J.format_value(J.enum_kind(0, 1), J.EnumOrdinal(1), m) == "green"
         @test_throws J.ValueError J.format_value(J.enum_kind(0, 1), J.EnumOrdinal(9), m)
+        # A decoded enumeration value comes out in the standard form of its base
+        # type, as EXIficient gives it (W3C enumeration.valid-02); strings keep
+        # the schema's text (rexi lexical.rs enum_values_come_out_in_standard_form).
+        floats = J.enum_kind(3, 2)
+        @test J.format_value(floats, J.EnumOrdinal(0), m) == "1E0"
+        @test J.format_value(floats, J.EnumOrdinal(1), m) == J.format_value(J.FLOAT_KIND, J.Lexical("0.250e2"), m)
+        @test J.format_value(J.enum_kind(2, 3), J.EnumOrdinal(1), m) == J.format_value(J.DECIMAL_KIND, J.Lexical("2.5"), m)
+        @test J.format_value(J.enum_kind(0, 1), J.EnumOrdinal(2), m) == "blue"
+        @test J.parse_lexical(floats, "1E0", m) == J.EnumOrdinal(0)
         @test J.format_value(J.FLOAT_KIND, J.Lexical("12.0"), m) == "12E0"
         @test J.format_value(J.DECIMAL_KIND, J.Lexical("-.50"), m) == "-0.5"
         @test J.format_value(J.DECIMAL_KIND, -7, m) == "-7.0"

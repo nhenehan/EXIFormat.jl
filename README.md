@@ -128,7 +128,7 @@ with the exip judges required).
 | Re-encode the decoded events | the same | Same bytes |
 | exip's decoder (exipd) reads EXIFormat's output | strict bit-packed; strict byte-aligned | Accepted |
 | Grammar tables compared with rexi's (`rexi dump-grammar`) | every fixture schema | The same |
-| W3C EXI test suite, strict group (219 cases, `scripts/w3c-strict.py`, run by hand): encode, decode and re-encode, compared with EXIficient 1.0.7 | strict bit-packed; strict byte-aligned | 160 of 219 the same, the same cases as rexi. schemaValidDatatypes: 118 of 139; the others need schema-less streams (16), Preserve.prefixes (2) or non-strict mode (2), and in one (enumeration.valid-02) EXIFormat decodes an enumerated float as the schema writes it, `1.0`, where EXIficient gives `1E0`. declaredProductions: 42 of 80; the others need wildcards (17), Preserve options (15), fragments (4) or non-strict mode (2) |
+| W3C EXI test suite, strict group (219 cases, `scripts/w3c-strict.py`, run by hand): encode, decode and re-encode, compared with EXIficient 1.0.7 | strict bit-packed; strict byte-aligned | 161 of 219 the same, the same cases as rexi. schemaValidDatatypes: 119 of 139; the others need schema-less streams (16), Preserve.prefixes (2) or non-strict mode (2). declaredProductions: 42 of 80; the others need wildcards (17), Preserve options (15), fragments (4) or non-strict mode (2) |
 
 [rexi-interop](https://github.com/nhenehan/rexi-interop) is a separate matrix, run
 by hand, where EXIficient, Nagasena, Nagasena for .NET, exip, rexi and EXIFormat

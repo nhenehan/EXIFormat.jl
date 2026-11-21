@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+- A decoded enumeration value comes out in the standard form of its base
+  type, as EXIficient and rexi give it: a float the schema lists as `1.0`
+  decodes as `1E0`, not `1.0`
+  ([EXI 7.2](https://www.w3.org/TR/exi/#encodingEnumerations) says only that the
+  value is an index). The bytes do not change. Found by the W3C case
+  enumeration.valid-02.
 - For developers: `scripts/w3c-strict.py` (the same script as rexi's) runs the
   W3C test suite's strict group, 219 cases, against `bin/exiformat`, compared
-  with EXIficient 1.0.7: 160 the same, the same cases as rexi. exi-testsuite is
+  with EXIficient 1.0.7: 161 the same, the same cases as rexi. exi-testsuite is
   now pinned in `third-party.lock`, and exip moves to `fd43178` (its oracle has
   `--fragment`).
 
