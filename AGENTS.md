@@ -2,7 +2,7 @@
 
 ## About this project
 
-EXIFormat is an implementation of W3C Efficient XML Interchange (EXI) 1.0 in native Julia. It is a port of [rexi](https://github.com/nhenehan/rexi), the Rust implementation, and must write the same bytes. It was called JExi up to JExi 0.2.0; numbering started again at 0.1.0 as EXIFormat. JExi's tag `v0.2.0` stays (mod_jl and rexi-interop pin it), so EXIFormat's next minor release must be 0.3.0 unless those pins move first.
+EXIFormat is an implementation of W3C Efficient XML Interchange (EXI) 1.0 in native Julia. It is a port of [rexi](https://github.com/nhenehan/rexi), the Rust implementation, and must write the same bytes. It was called JExi up to JExi 0.2.0; numbering started again at 0.1.0 as EXIFormat, and JExi's old tags are deleted.
 
 It encodes and decodes XML using schema-informed, strict EXI. Both communicating ends must use compatible schema grammars and EXI options.
 
