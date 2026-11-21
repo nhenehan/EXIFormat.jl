@@ -101,10 +101,31 @@ event streams and grammar dumps, with their sha256 in `manifest.tsv`.
 `EXIFormat.grammar_listing` must reproduce exactly. Change them only with
 `scripts/sync-fixtures.sh` after moving the pin.
 
+## W3C strict group
+
+`scripts/w3c-strict.py` runs the W3C test suite's strict group
+(`config/testCases-interop/strict.xml`: schemaValidDatatypes and
+declaredProductions, 219 cases) from the cached exi-testsuite, with
+`bin/exiformat`. For each case, on bit-packed and byte-aligned, EXIficient (the
+oracle jar) makes the reference stream and its events; EXIFormat's encode must
+give the same bytes, its decode the same events, and decode then encode the same
+bytes again. It is the same file as rexi's `scripts/w3c-strict.py`: keep the two
+copies the same. It is not part of the gate, because it starts Julia for every
+step (about 6 minutes with 8 jobs).
+
+```bash
+scripts/w3c-strict.py --jobs 8               # compare with scripts/w3c-strict.expected
+scripts/w3c-strict.py --jobs 8 --update      # on purpose: accept the new results
+```
+
+The run fails when a result differs from `scripts/w3c-strict.expected`, both
+when a case stops passing and when one starts.
+
 ## Third parties
 
 Nothing third-party lives in the working tree. `scripts/fetch-third-party.sh`
 checks out the commits pinned in `third-party.lock` (exip for the exipd judge
-and the EXIficient oracle, rexi for the fixtures and its CLI) into
+and the EXIficient oracle, rexi for the fixtures and its CLI, exi-testsuite for
+`scripts/w3c-strict.py`) into
 `${EXIFORMAT_THIRD_PARTY:-${XDG_CACHE_HOME:-~/.cache}/exiformat/third_party}`.
 Julia dependencies: XML.jl and PrecompileTools; the tests also use Aqua and JET.

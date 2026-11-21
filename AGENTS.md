@@ -60,7 +60,7 @@ Refused with `UnsupportedError` (`src/core/errors.jl`, `validate_options` in `sr
 
 Both ends must agree on the schema and the options. Do not silently substitute a different encoding for an unsupported feature. Do not assume that a schema that compiles can encode every document that uses it: the refusal comes when a document reaches the unsupported part.
 
-Report only what the tests show. EXIFormat does not run the W3C EXI test suite; rexi runs its declaredProductions group.
+Report only what the tests show. Of the W3C EXI test suite, EXIFormat runs only the strict group (`scripts/w3c-strict.py`, expected results in `scripts/w3c-strict.expected`), the same script as rexi's.
 
 ## Allocations and type stability
 

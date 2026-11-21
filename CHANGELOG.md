@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- For developers: `scripts/w3c-strict.py` (the same script as rexi's) runs the
+  W3C test suite's strict group, 219 cases, against `bin/exiformat`, compared
+  with EXIficient 1.0.7: 160 the same, the same cases as rexi. exi-testsuite is
+  now pinned in `third-party.lock`, and exip moves to `fd43178` (its oracle has
+  `--fragment`).
+
 ## 0.1.0
 
 The first release as EXIFormat, and the first in Julia's General registry. The
