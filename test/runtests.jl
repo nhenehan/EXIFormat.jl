@@ -10,6 +10,7 @@ using Test
     include("fixtures_strict.jl")
     include("reuse.jl")
     include("xml.jl")
+    include("fragment.jl")
     include("generated_tables.jl")
     include("structs.jl")
     include("cli.jl")

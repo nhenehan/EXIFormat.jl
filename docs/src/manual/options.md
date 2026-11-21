@@ -40,3 +40,20 @@ way, such as in a protocol spec or a config file. The EXI spec calls this
 
 EXIFormat refuses options it does not support when you build the encoder, so you
 find out right away.
+
+## Fragments
+
+A normal EXI body holds one document with one root element. Set the `fragment`
+option (`strict_options(; fragment = true)`) to send a run of elements instead,
+such as tank level and flow readings with no wrapper around them
+([EXI 8.5.2](https://www.w3.org/TR/exi/#informedFragGrammars)). Each element may
+be any element the schema declares, even one that is only declared inside
+another element. `encode_xml` then takes XML with several root elements,
+`decode_to_xml` gives them back, and [`xml_fragment_events`](@ref
+EXIFormat.xml_fragment_events) reads such XML into events. The `exiformat`
+tool takes `--fragment` for the same thing.
+
+One case is refused: when two elements share a name but have different types
+(or differ in `nillable`), EXI would read that name at the top of a fragment
+with a looser grammar that EXIFormat does not build. Inside their parents those
+elements work as usual.

@@ -64,7 +64,8 @@ end
         @test_throws J.HeaderError J.validate_options(J.strict_options(preserve = J.Preserve(comments = true)))
         @test_throws J.UnsupportedError(J.FEATURE_PRESERVE_LEXICAL_VALUES) J.validate_options(
             J.strict_options(preserve = J.Preserve(lexical_values = true)))
-        @test_throws J.UnsupportedError J.Encoder(J.OPTIONS_GRAMMARS, J.strict_options(fragment = true))
+        # Schema-informed fragments are supported (test/fragment.jl).
+        @test J.Encoder(J.OPTIONS_GRAMMARS, J.strict_options(fragment = true)) isa J.Encoder
     end
 
     @testset "bad headers" begin

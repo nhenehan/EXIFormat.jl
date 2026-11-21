@@ -132,6 +132,7 @@ function next!(dec::Decoder)
     end
     g = dec.tables
     if isempty(dec.frames)
+        dec.options.fragment && return step_fragment_content!(dec)
         # DocContent : SE(G_0) ... SE(G_n-1) SE(*). A code of n or more is SE(*),
         # which would need a built-in grammar.
         n = length(g.global_elements)
@@ -172,12 +173,35 @@ function next!(dec::Decoder)
         return EV_CH
     elseif k == T_EE
         pop!(dec.frames)
-        isempty(dec.frames) && (dec.cursor = CUR_DOC_END)
+        # A fragment goes back to FragmentContent for the next element.
+        isempty(dec.frames) && !dec.options.fragment && (dec.cursor = CUR_DOC_END)
         return EV_EE
     elseif k == T_SE_ANY || k == T_SE_NS || k == T_AT_ANY || k == T_AT_NS || k == T_AT_ANY_UNTYPED
         throw(UnsupportedError(FEATURE_WILDCARD))
     end
     throw(GrammarError("a strict schema-informed production", string(k)))
+end
+
+"""
+Reads one code of a fragment's top level,
+`FragmentContent : SE(F_0) ... SE(F_n-1) SE(*) ED`
+(https://www.w3.org/TR/exi/#informedFragGrammars): codes `0` to `n - 1` start an
+element, `n` is `SE(*)` and `n + 1` is `ED`.
+"""
+@noinline function step_fragment_content!(dec::Decoder)
+    entries = fragment_entries(dec.tables)
+    n = length(entries)
+    code = Int(read_nbit_unsigned!(dec.inp, ceil_log2(n + 2)))
+    if code == n + 1
+        dec.cursor = CUR_DONE
+        return EV_ED
+    end
+    code == n && throw(UnsupportedError(FEATURE_BUILT_IN_ELEMENT_GRAMMAR))
+    code > n + 1 && throw(GrammarError("fragment event code <= $(n + 1)", "$code at bit $(bit_position(dec.inp))"))
+    e = entries[code + 1]
+    e.elem == NONE && throw(UnsupportedError(FEATURE_RELAXED_ELEMENT_GRAMMAR))
+    push_element!(dec, e.elem)
+    return EV_SE
 end
 
 function step_escape!(dec::Decoder, f::Frame)

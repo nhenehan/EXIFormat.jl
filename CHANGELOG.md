@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Schema-informed fragments ([EXI 8.5.2](https://www.w3.org/TR/exi/#informedFragGrammars)),
+  as in rexi 0.3.1: set the `fragment` option (`strict_options(; fragment = true)`)
+  to encode and decode a run of root elements, each one any element the schema
+  declares, global or local. `encode_xml` reads several roots when the option is
+  set, `xml_fragment_events` reads a fragment into events, and `bin/exiformat`
+  takes `--fragment`. A name declared twice with different types or `nillable`
+  needs EXI's relaxed element grammar, which EXIFormat refuses with the new
+  `FEATURE_RELAXED_ELEMENT_GRAMMAR`. The same bits as rexi, on rexi's tests and
+  rexi-interop's case F1.
 - A decoded enumeration value comes out in the standard form of its base
   type, as EXIficient and rexi give it: a float the schema lists as `1.0`
   decodes as `1E0`, not `1.0`

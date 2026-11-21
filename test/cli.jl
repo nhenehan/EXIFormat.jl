@@ -98,4 +98,19 @@ end
     @test code == 1 && occursin("refused", err)
     @test exiformat("dump-grammar", "--schema-root", set, "--xsd", main)[1] == 0
     @test occursin("--schema-root DIR", exiformat("--help")[3])
+
+    # --fragment: several roots, each any declared element (the ABC schema of
+    # test/fragment.jl and rexi's tests/fragment.rs, same bits).
+    fx = joinpath(dir, "abc.xsd")
+    write(fx, """<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="b"><xs:complexType><xs:sequence><xs:element name="c" type="xs:boolean"/></xs:sequence></xs:complexType></xs:element>
+      <xs:element name="a" type="xs:boolean"/></xs:schema>""")
+    fxml = joinpath(dir, "frag.xml")
+    write(fxml, "<c>true</c><a>false</a>")
+    @test exiformat("encode", "--xsd", fx, "--fragment", fxml, exi)[1] == 0
+    @test read(exi) == [0x80, 0x50, 0x80]
+    code, text, _ = exiformat("dump-events", "--xsd", fx, "--fragment", exi)
+    @test code == 0 && text == "SD\nSE {}c\nCH true\nEE\nSE {}a\nCH false\nEE\nED\n"
+    @test exiformat("encode", "--xsd", fx, fxml, exi)[1] == 1  # several roots need --fragment
+    @test occursin("--fragment", exiformat("--help")[3])
 end

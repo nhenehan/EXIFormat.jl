@@ -46,7 +46,7 @@ Use `Encoder` (push: `start_document!`, `start_element!`, `attribute!`, `charact
 
 ## EXI rules
 
-The implemented profile is EXI 1.0 (Second Edition), schema-informed and strict, for documents only.
+The implemented profile is EXI 1.0 (Second Edition), schema-informed and strict, for documents and fragments.
 
 Supported:
 
@@ -55,8 +55,9 @@ Supported:
 - Options in the header or agreed out of band.
 - Restricted character sets whose `xs:pattern` can be parsed.
 - An `xsi:type` that names no type in the schema: written, and the element keeps its grammar (as EXIficient and rexi 0.3.1 do).
+- Schema-informed fragments (`fragment = true`, as rexi 0.3.1): any number of root elements, each any element the schema declares, global or local.
 
-Refused with `UnsupportedError` (`src/core/errors.jl`, `validate_options` in `src/core/options.jl`): compression and pre-compression, fragments, wildcards (`xs:any`, `xs:anyAttribute`), schema-less streams (built-in grammars), non-strict mode, the Preserve options, selfContained, datatypeRepresentationMap, and restricted strings whose pattern does not parse.
+Refused with `UnsupportedError` (`src/core/errors.jl`, `validate_options` in `src/core/options.jl`): compression and pre-compression, a fragment-level name declared twice with different types or `nillable` (relaxed element grammars), wildcards (`xs:any`, `xs:anyAttribute`), schema-less streams (built-in grammars), non-strict mode, the Preserve options, selfContained, datatypeRepresentationMap, and restricted strings whose pattern does not parse.
 
 Both ends must agree on the schema and the options. Do not silently substitute a different encoding for an unsupported feature. Do not assume that a schema that compiles can encode every document that uses it: the refusal comes when a document reaches the unsupported part.
 

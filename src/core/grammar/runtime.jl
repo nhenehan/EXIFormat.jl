@@ -8,6 +8,14 @@
 # for xsi:type (when typecastable) and the next for xsi:nil (when nillable)
 # (https://www.w3.org/TR/exi/#addingProductionsStrict).
 
+# Fragments (https://www.w3.org/TR/exi/#informedFragGrammars): when the
+# `fragment` option is set, the body is a fragment, and its FragmentContent rule
+# is built from every element declaration, global or local, not stored in the
+# tables. It has one SE(F_i) per element name (sorted by local name, then by
+# URI, each name once), then SE(*), then ED. Each SE comes back to
+# FragmentContent after the element ends, so a fragment holds any number of
+# elements, and the width is ceil_log2(n + 2). See `fragment_entries`.
+
 """Where the document is outside any element."""
 @enum DocCursor::UInt8 CUR_DOCUMENT CUR_DOC_CONTENT CUR_DOC_END CUR_DONE
 
@@ -113,6 +121,56 @@ function runtime_tables(g::GrammarSet)
         DatatypeKind[datatype(g, t - 1) for t in eachindex(g.types)], qname_map(g))
     g.cache.runtime = rt
     return rt
+end
+
+"""
+One `SE(F_i)` of a fragment's FragmentContent rule
+(https://www.w3.org/TR/exi/#informedFragGrammars): the element name, and the
+declaration whose grammar the element is read with, or `NONE` when several
+declarations share the name but differ in type or `nillable`. EXI then reads
+the element with the relaxed element grammar, which EXIFormat refuses
+(`FEATURE_RELAXED_ELEMENT_GRAMMAR`).
+"""
+struct FragmentEntry
+    qname::QNameId
+    elem::ElemIdx
+end
+
+"""
+    fragment_entries(g) -> Vector{FragmentEntry}
+
+The `SE(F_0) ... SE(F_n-1)` list of FragmentContent: every element
+declaration, global or local, one entry per name, sorted by local name and then
+by URI (both by code point). The `SE(*)` and `ED` that follow are not in the
+list: their codes are `n` and `n + 1`. Worked out once per `GrammarSet`, and
+only when a fragment is coded, so documents pay nothing.
+"""
+function fragment_entries(g::GrammarSet)
+    c = g.cache.fragment
+    c === nothing || return c::Vector{FragmentEntry}
+    elems = g.elements
+    key(i) = (something(local_name_str(g, elems[i].qname), ""), something(uri_str(g, elems[i].qname.uri), ""))
+    # A stable sort keeps declarations of one name in table order.
+    order = sort!(collect(eachindex(elems)); by = key, alg = MergeSort)
+    out = FragmentEntry[]
+    for i in order
+        d = elems[i]
+        if !isempty(out) && out[end].qname == d.qname
+            # Same name again: it keeps its specific grammar only when the type
+            # and `nillable` agree with the first declaration.
+            last = out[end]
+            if last.elem != NONE
+                first = gelement(g, last.elem)
+                if first.type_idx != d.type_idx || first.nillable != d.nillable
+                    out[end] = FragmentEntry(last.qname, NONE)
+                end
+            end
+            continue
+        end
+        push!(out, FragmentEntry(d.qname, ElemIdx(i - 1)))
+    end
+    g.cache.fragment = out
+    return out
 end
 
 function describe_qname(g::GrammarSet, q::QNameId)

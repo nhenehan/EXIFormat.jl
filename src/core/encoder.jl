@@ -142,9 +142,19 @@ function start_document!(enc::Encoder)
     return enc
 end
 
-"""Writes `ED`, the end of the document, after the root element has ended."""
+"""Writes `ED`, the end of the document, after the root element has ended (for a
+fragment: after the last root element, or with none)."""
 function end_document!(enc::Encoder)
     flush_chars!(enc, false)
+    if enc.options.fragment
+        # FragmentContent : ... SE(*) ED, so ED is code n + 1
+        # (https://www.w3.org/TR/exi/#informedFragGrammars).
+        (enc.cursor == CUR_DOC_CONTENT && isempty(enc.frames)) || throw(mismatch(enc, "ED"))
+        n = length(fragment_entries(enc.tables))
+        emit_code!(enc, n + 1, ceil_log2(n + 2))
+        enc.cursor = CUR_DONE
+        return enc
+    end
     enc.cursor == CUR_DOC_END || throw(mismatch(enc, "ED"))
     enc.cursor = CUR_DONE
     return enc
@@ -168,6 +178,7 @@ function start_element_resolved!(enc::Encoder, q::Union{Nothing,QNameId}, uri, l
     g = enc.tables
     if isempty(enc.frames)
         enc.cursor == CUR_DOC_CONTENT || throw(mismatch(enc, "SE"))
+        enc.options.fragment && return start_fragment_element!(enc, q)
         # DocContent : SE(G_0) ... SE(G_n-1) SE(*)
         # (https://www.w3.org/TR/exi/#informedDocGrammars). The root's code is its
         # place among the sorted global elements; any other root would need SE(*)
@@ -192,6 +203,23 @@ function start_element_resolved!(enc::Encoder, q::Union{Nothing,QNameId}, uri, l
     emit_code!(enc, code, fl_width(enc, f))
     set_top!(enc, with_rule(f, prod.next))
     push_element!(enc, prod.terminal.a)
+    return enc
+end
+
+"""
+Writes `SE(F_i)` at a fragment's top level: the code is the name's place in the
+sorted list of all element names
+(https://www.w3.org/TR/exi/#informedFragGrammars).
+"""
+function start_fragment_element!(enc::Encoder, q::Union{Nothing,QNameId})
+    entries = fragment_entries(enc.tables)
+    # A name the schema does not declare would need SE(*) and a built-in grammar.
+    pos = q === nothing ? nothing : findfirst(e -> e.qname == q, entries)
+    pos === nothing && throw(UnsupportedError(FEATURE_BUILT_IN_ELEMENT_GRAMMAR))
+    e = entries[pos]
+    e.elem == NONE && throw(UnsupportedError(FEATURE_RELAXED_ELEMENT_GRAMMAR))
+    emit_code!(enc, pos - 1, ceil_log2(length(entries) + 2))
+    push_element!(enc, e.elem)
     return enc
 end
 
@@ -328,7 +356,8 @@ function end_element!(enc::Encoder)
     emit_code!(enc, found[1], fl_width(enc, f))
     pop!(enc.frames)
     enc.after_start_tag = false
-    isempty(enc.frames) && (enc.cursor = CUR_DOC_END)
+    # A fragment goes back to FragmentContent for the next element.
+    isempty(enc.frames) && !enc.options.fragment && (enc.cursor = CUR_DOC_END)
     return enc
 end
 

@@ -362,14 +362,14 @@ schemaInformed.declared.element-01 bit-packed pass
 schemaInformed.declared.element-01 byte-aligned pass
 schemaInformed.declared.element-02 bit-packed pass
 schemaInformed.declared.element-02 byte-aligned pass
-schemaInformed.declared.elementFragment-01 bit-packed unsupported  # fragment: EXIFormat has no --fragment
-schemaInformed.declared.elementFragment-01 byte-aligned unsupported  # fragment: EXIFormat has no --fragment
-schemaInformed.declared.elementFragment-02 bit-packed unsupported  # fragment: EXIFormat has no --fragment
-schemaInformed.declared.elementFragment-02 byte-aligned unsupported  # fragment: EXIFormat has no --fragment
-schemaInformed.declared.elementFragment-03 bit-packed unsupported  # fragment: EXIFormat has no --fragment
-schemaInformed.declared.elementFragment-03 byte-aligned unsupported  # fragment: EXIFormat has no --fragment
-schemaInformed.declared.elementFragment-04 bit-packed unsupported  # fragment: EXIFormat has no --fragment
-schemaInformed.declared.elementFragment-04 byte-aligned unsupported  # fragment: EXIFormat has no --fragment
+schemaInformed.declared.elementFragment-01 bit-packed unsupported  # exiformat: not supported: relaxed element grammars (fragments)
+schemaInformed.declared.elementFragment-01 byte-aligned unsupported  # exiformat: not supported: relaxed element grammars (fragments)
+schemaInformed.declared.elementFragment-02 bit-packed unsupported  # exiformat: not supported: relaxed element grammars (fragments)
+schemaInformed.declared.elementFragment-02 byte-aligned unsupported  # exiformat: not supported: relaxed element grammars (fragments)
+schemaInformed.declared.elementFragment-03 bit-packed unsupported  # exiformat: not supported: relaxed element grammars (fragments)
+schemaInformed.declared.elementFragment-03 byte-aligned unsupported  # exiformat: not supported: relaxed element grammars (fragments)
+schemaInformed.declared.elementFragment-04 bit-packed unsupported  # exiformat: not supported: relaxed element grammars (fragments)
+schemaInformed.declared.elementFragment-04 byte-aligned unsupported  # exiformat: not supported: relaxed element grammars (fragments)
 schemaInformed.declared.elementFragment-05 bit-packed unsupported  # Preserve.dtds,pis,comments
 schemaInformed.declared.elementFragment-05 byte-aligned unsupported  # Preserve.dtds,pis,comments
 schemaInformed.declared.elementFragment-06 bit-packed unsupported  # Preserve.dtds,pis,comments

@@ -170,8 +170,10 @@ it, each part filled on first use: the initial string table's URI slots (see
 mutable struct GrammarCache
     slots::Any
     runtime::Any
+    # The `SE(F_i)` list of a fragment's FragmentContent (see `fragment_entries`).
+    fragment::Any
 end
-GrammarCache() = GrammarCache(nothing, nothing)
+GrammarCache() = GrammarCache(nothing, nothing, nothing)
 
 """
     GrammarSet

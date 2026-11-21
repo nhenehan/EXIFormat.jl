@@ -14,5 +14,5 @@
 #   pin as rexi's).
 
 exip https://github.com/nhenehan/exip.git fd43178f32d480535b08861d07700d106a3f31d7
-rexi https://github.com/nhenehan/rexi.git v0.2.0
+rexi https://github.com/nhenehan/rexi.git v0.3.1
 exi-testsuite https://github.com/w3c/exi-testsuite.git 23d5f587ba3ec281f1a6a8182c1450cb870b469e

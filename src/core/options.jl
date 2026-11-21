@@ -118,7 +118,6 @@ function validate_options(o::ExiOptions)
     o.alignment == ALIGN_PRE_COMPRESSION && throw(UnsupportedError(FEATURE_PRE_COMPRESSION))
     o.self_contained && throw(UnsupportedError(FEATURE_SELF_CONTAINED))
     o.datatype_representation_map && throw(UnsupportedError(FEATURE_DATATYPE_REPRESENTATION_MAP))
-    o.fragment && throw(UnsupportedError(FEATURE_FRAGMENT))
     p = o.preserve
     if o.strict && (p.dtd || p.prefixes || p.comments || p.pis)
         throw(HeaderError("strict cannot be combined with Preserve.dtd/prefixes/comments/pis"))

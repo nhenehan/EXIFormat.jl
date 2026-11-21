@@ -2,9 +2,8 @@
 
 ## Status
 
-0.1.0 has the scope of rexi 0.2, plus rexi 0.3.1's handling of an `xsi:type`
-that names no type in the schema. rexi 0.3 also encodes schema-informed
-fragments; EXIFormat does not yet.
+EXIFormat has the scope of rexi 0.3.1: rexi 0.2's, plus the handling of an
+`xsi:type` that names no type in the schema, and schema-informed fragments.
 
 The interop fixtures (EXIficient 1.0.7 reference bytes) encode bit for bit in
 the strict bit-packed, bit-packed with options, and byte-aligned profiles. They
@@ -47,7 +46,7 @@ bin/exiformat dump-grammar --xsd a.xsd[,b.xsd]
 bin/exiformat bench encode|decode --xsd a.xsd [--warmup N --iterations N] in
 ```
 
-`bin/exiformat` takes rexi 0.2's command line (rexi 0.3 adds `--fragment`) and
+`bin/exiformat` takes rexi 0.3's command line (including `--fragment`) and
 prints the same `bench` JSON, which is how the
 [rexi-interop](https://github.com/nhenehan/rexi-interop) harness drives both.
 Speed notes are in the docs appendix ([`docs/src/appendix/performance.md`](docs/src/appendix/performance.md)).

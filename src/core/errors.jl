@@ -20,6 +20,8 @@ it is always reported as an [`UnsupportedError`]; it is never quietly ignored.
     # (https://www.w3.org/TR/exi/#restrictedCharSet).
     FEATURE_RESTRICTED_CHARACTER_SET
     # Several root elements in one body (https://www.w3.org/TR/exi/#informedFragGrammars).
+    # No longer used now that schema-informed fragments are supported (set the
+    # `fragment` option). The value stays so code that names it still runs.
     FEATURE_FRAGMENT
     # Grammars used when there is no schema; they "learn" new productions
     # (https://www.w3.org/TR/exi/#builtinElemGrammars).
@@ -40,6 +42,13 @@ it is always reported as an [`UnsupportedError`]; it is never quietly ignored.
     # schema-declared productions, not a non-strict feature; they are just not
     # implemented yet. An undeclared root element is FEATURE_BUILT_IN_ELEMENT_GRAMMAR.
     FEATURE_WILDCARD
+    # The relaxed element grammar of a fragment
+    # (https://www.w3.org/TR/exi/#informedFragGrammars). A fragment may start with
+    # any element the schema declares, global or local. When two declarations share
+    # a name but differ in type or in `nillable`, EXI reads that name with a looser
+    # grammar that EXIFormat does not build. Only that name is refused; the other
+    # elements of the fragment work.
+    FEATURE_RELAXED_ELEMENT_GRAMMAR
 end
 
 const FEATURE_NAMES = Dict{Feature,String}(
@@ -49,6 +58,7 @@ const FEATURE_NAMES = Dict{Feature,String}(
     FEATURE_DATATYPE_REPRESENTATION_MAP => "datatypeRepresentationMap",
     FEATURE_RESTRICTED_CHARACTER_SET => "restricted character sets",
     FEATURE_FRAGMENT => "fragment grammars",
+    FEATURE_RELAXED_ELEMENT_GRAMMAR => "relaxed element grammars (fragments)",
     FEATURE_BUILT_IN_ELEMENT_GRAMMAR => "built-in (schema-less) element grammars",
     FEATURE_NON_STRICT_SCHEMA_INFORMED => "non-strict schema-informed grammars",
     FEATURE_PRESERVE_DTD => "Preserve.dtd",
