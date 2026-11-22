@@ -120,7 +120,9 @@ build() {
     command -v cmake >/dev/null || { echo "missing required command: cmake" >&2; return 1; }
     echo "building exipd in $exip/build"
     # Older exip code treats warnings as errors; newer compilers surface more.
-    cmake -S "$exip" -B "$exip/build" -DCMAKE_C_FLAGS="-Wno-error=type-limits" >/dev/null
+    # exip is C99 and names a variable `bool`, a keyword in C23, which gcc 15
+    # (ubuntu-26.04 runners) uses by default: ask for C99 with GNU extensions.
+    cmake -S "$exip" -B "$exip/build" -DCMAKE_C_STANDARD=99 -DCMAKE_C_FLAGS="-Wno-error=type-limits" >/dev/null
     cmake --build "$exip/build" --target exipd
     echo "building the EXIficient oracle (exip utils/xsd2exip)"
     command -v mvn >/dev/null || { echo "missing required command: mvn" >&2; return 1; }
