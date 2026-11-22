@@ -62,8 +62,8 @@ end
             J.strict_options(alignment = J.ALIGN_PRE_COMPRESSION))
         @test_throws J.UnsupportedError(J.FEATURE_NON_STRICT_SCHEMA_INFORMED) J.validate_options(J.ExiOptions())
         @test_throws J.HeaderError J.validate_options(J.strict_options(preserve = J.Preserve(comments = true)))
-        @test_throws J.UnsupportedError(J.FEATURE_PRESERVE_LEXICAL_VALUES) J.validate_options(
-            J.strict_options(preserve = J.Preserve(lexical_values = true)))
+        # Preserve.lexicalValues is supported (test/lexical_values.jl).
+        @test J.validate_options(J.strict_options(preserve = J.Preserve(lexical_values = true))) === nothing
         # Schema-informed fragments are supported (test/fragment.jl).
         @test J.Encoder(J.OPTIONS_GRAMMARS, J.strict_options(fragment = true)) isa J.Encoder
     end

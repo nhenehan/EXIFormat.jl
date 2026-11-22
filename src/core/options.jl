@@ -12,7 +12,11 @@ How values are laid out in the body
 """
 @enum Alignment::UInt8 ALIGN_BIT_PACKED ALIGN_BYTE_ALIGNED ALIGN_PRE_COMPRESSION
 
-"""Which parts of the XML the stream keeps (https://www.w3.org/TR/exi/#fidelityOptions)."""
+"""
+Which parts of the XML the stream keeps (https://www.w3.org/TR/exi/#fidelityOptions).
+Only `lexical_values` is supported (and allowed in strict mode): each value is
+sent as its exact text. The others are refused.
+"""
 Base.@kwdef struct Preserve
     dtd::Bool = false
     prefixes::Bool = false
@@ -126,7 +130,6 @@ function validate_options(o::ExiOptions)
     p.prefixes && throw(UnsupportedError(FEATURE_PRESERVE_PREFIXES))
     p.comments && throw(UnsupportedError(FEATURE_PRESERVE_COMMENTS))
     p.pis && throw(UnsupportedError(FEATURE_PRESERVE_PIS))
-    p.lexical_values && throw(UnsupportedError(FEATURE_PRESERVE_LEXICAL_VALUES))
     o.strict || throw(UnsupportedError(FEATURE_NON_STRICT_SCHEMA_INFORMED))
     return nothing
 end

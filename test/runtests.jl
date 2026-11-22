@@ -11,6 +11,7 @@ using Test
     include("reuse.jl")
     include("xml.jl")
     include("fragment.jl")
+    include("lexical_values.jl")
     include("generated_tables.jl")
     include("structs.jl")
     include("cli.jl")

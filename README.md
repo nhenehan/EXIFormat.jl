@@ -87,7 +87,7 @@ What the codec can encode and decode.
 | Compression | Not supported | |
 | Pre-compression | Not supported | |
 | Wildcards | Supported | `xs:any`, `xs:anyAttribute`: elements with a global declaration, and any attribute (typed by its global declaration, or a string). An element with no global declaration needs a built-in grammar and is refused |
-| `Preserve.lexicalValues` | Not supported | |
+| `Preserve.lexicalValues` | Supported | Values sent as their exact text (EXI Table 7-2). `xsi:type` can then name only a type in no namespace, as in EXIficient |
 | `datatypeRepresentationMap` | Not supported | Uses standard datatype representations |
 | `xs:redefine`, `xs:override`, `xs:notation` | Not supported | Refused when the schema is compiled |
 | Preserve comments, PIs, DTD, prefixes | Not allowed in strict mode | EXI forbids them together with `strict` ([EXI 5.4](https://www.w3.org/TR/exi/#options)) |
@@ -129,6 +129,7 @@ with the exip judges required).
 | exip's decoder (exipd) reads EXIFormat's output | strict bit-packed; strict byte-aligned | Accepted |
 | Grammar tables compared with rexi's (`rexi dump-grammar`) | every fixture schema | The same |
 | W3C EXI test suite, strict group (219 cases, `scripts/w3c-strict.py`, run by hand): encode, decode and re-encode, compared with EXIficient 1.0.7 | strict bit-packed; strict byte-aligned | 177 of 219 the same, the same cases as rexi (with its `wildcard` feature). schemaValidDatatypes: 119 of 139; the others need schema-less streams (16), Preserve.prefixes (2) or non-strict mode (2). declaredProductions: 58 of 80; the others need Preserve options (15), the element fragment grammar (4), non-strict mode (2) or a built-in grammar for a wildcard element with no declaration (1) |
+| The same 219 cases with Preserve.lexicalValues on (`--lexical-values`), compared with EXIficient 1.0.7 | strict bit-packed, lexicalValues; strict byte-aligned, lexicalValues | 173 of 219 the same, the same cases as rexi. Of the others, EXIficient refuses 5 (a prefixed `xsi:type`) and the rest need the same features as without the option |
 
 [rexi-interop](https://github.com/nhenehan/rexi-interop) is a separate matrix, run
 by hand, where EXIficient, Nagasena, Nagasena for .NET, exip, rexi and EXIFormat

@@ -116,6 +116,7 @@ step (about 6 minutes with 8 jobs).
 
 ```bash
 scripts/w3c-strict.py --jobs 8               # compare with scripts/w3c-strict.expected
+scripts/w3c-strict.py --jobs 8 --lexical-values  # the same with Preserve.lexicalValues on
 scripts/w3c-strict.py --jobs 8 --update      # on purpose: accept the new results
 ```
 

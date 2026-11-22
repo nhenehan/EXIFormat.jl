@@ -57,3 +57,29 @@ One case is refused: when two elements share a name but have different types
 (or differ in `nillable`), EXI would read that name at the top of a fragment
 with a looser grammar that EXIFormat does not build. Inside their parents those
 elements work as usual.
+
+## Exact values: `Preserve.lexicalValues`
+
+Normally a value is sent in its type's compact form, so it decodes to the
+type's standard text: `<price>1.50</price>` comes back as `1.5`, and `+05` as
+`5`. When the exact text matters, for a signature over the XML or an audit
+trail, turn on `Preserve.lexicalValues`
+([EXI 6.3](https://www.w3.org/TR/exi/#fidelityOptions)), the one Preserve option
+strict mode allows:
+
+```julia
+options = strict_options(; preserve = Preserve(; lexical_values = true))
+```
+
+Each value is then its text, written with a small alphabet chosen by its type
+(digits and signs for numbers, for example; EXI Table 7-2), and repeated values
+still go through the string table. The messages are a little larger than
+without the option. The text is kept as it is, spaces included, and so is
+whitespace between elements where the schema allows text. The `exiformat` tool
+takes `--preserve lexicalValues`.
+
+`xsi:type` is text as well, and a prefix in it would mean nothing to the
+decoder, since strict mode does not send namespace prefixes. So with this
+option `xsi:type` can only name a type in no namespace; `xsi:type="xs:int"` is
+refused with `UnsupportedError(FEATURE_PRESERVE_PREFIXES)`. EXIficient refuses
+it too.

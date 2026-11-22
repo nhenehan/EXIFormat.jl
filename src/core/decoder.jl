@@ -255,7 +255,7 @@ function step_escape!(dec::Decoder, f::Frame)
     g = dec.tables
     code2 = Int(read_nbit_unsigned!(dec.inp, second_level_width(f)))
     if code2 == xsi_type_code(f)
-        q = read_qname!(dec.strings, dec.inp)
+        q = dec.options.preserve.lexical_values ? read_xsi_type_text!(dec) : read_qname!(dec.strings, dec.inp)
         t = find_type(g, q)
         # No such type: keep the grammar, as the encoder does. Otherwise there
         # are no escapes after a cast: see `xsi_type!` of the encoder.
@@ -263,7 +263,13 @@ function step_escape!(dec::Decoder, f::Frame)
         dec.qname = q
         return EV_XSI_TYPE
     elseif code2 == xsi_nil_code(f)
-        nil = read_bool!(dec.inp)
+        nil = if dec.options.preserve.lexical_values
+            b = parse_boolean(read_value!(dec.strings, dec.inp, XSI_NIL_QNAME, LEX_BOOLEAN))
+            b === nothing && throw(ValueError("xsi:nil", "not a boolean"))
+            b
+        else
+            read_bool!(dec.inp)
+        end
         nil && set_top!(dec, nil_to(f, grammar_start_rule(g, gtype(g, f.type_idx).empty_grammar)))
         dec.nil = nil
         return EV_XSI_NIL
@@ -271,7 +277,26 @@ function step_escape!(dec::Decoder, f::Frame)
     throw(GrammarError("xsi:type or xsi:nil escape", "second-level code $code2"))
 end
 
+"""
+Reads an `xsi:type` written as text (Preserve.lexicalValues; see the encoder's
+`xsi_type_lexical_name`): a name with no prefix, in no namespace.
+"""
+function read_xsi_type_text!(dec::Decoder)
+    s = read_value!(dec.strings, dec.inp, XSI_TYPE_QNAME)
+    # A prefix, and no way to know its namespace in strict mode.
+    occursin(':', s) && throw(UnsupportedError(FEATURE_PRESERVE_PREFIXES))
+    q = qname_id(dec.strings, "", s)
+    q === nothing && throw(ValueError("xsi:type", "$s is not a name the schema uses"))
+    return q
+end
+
 function read_typed_value!(dec::Decoder, kind::DatatypeKind, context::QNameId)
+    if dec.options.preserve.lexical_values
+        s = read_value!(dec.strings, dec.inp, context, lexical_alphabet(kind, dec.tables))
+        dec.string_bytes += ncodeunits(s)
+        dec.string_bytes > dec.max_string_bytes && throw(LimitError(:string_bytes, dec.max_string_bytes))
+        return s
+    end
     restricted = kind.tag == K_RESTRICTED_STRING
     # No alphabet (a pattern that did not parse): refused before the string
     # table is touched. See `K_RESTRICTED_STRING`.

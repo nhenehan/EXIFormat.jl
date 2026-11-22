@@ -365,13 +365,38 @@ function xsi_type!(enc::Encoder, uri::AbstractString, local_name::AbstractString
     code2 = xsi_type_code(f)
     code2 === nothing && throw(mismatch(enc, "AT(xsi:type)"))
     # The escape is the code just past the last production.
+    # Checked before any bits are written.
+    lexical = enc.options.preserve.lexical_values
+    lq = lexical ? xsi_type_lexical_name(enc, uri, local_name) : nothing
     emit_code!(enc, length(rule_productions(g, f.rule)), first_level_width(g, f))
     emit_code!(enc, code2, second_level_width(f))
-    q = write_qname!(enc.strings, enc.out, uri, local_name)
+    q = if lq === nothing
+        write_qname!(enc.strings, enc.out, uri, local_name)
+    else
+        # The value is the type's name as text, a plain String.
+        write_value!(enc.strings, enc.out, XSI_TYPE_QNAME, local_name)
+        lq
+    end
     t = find_type(g, q)
     t === nothing && return enc  # no such type: keep the grammar
     set_top!(enc, cast_to(f, grammar_start_rule(g, gtype(g, t).grammar), t))
     return enc
+end
+
+"""
+With Preserve.lexicalValues, `xsi:type` is a String, the type's name as written
+(https://www.w3.org/TR/exi/#encodingDatatypes, Table 7-1: QName is used only
+when the option is off). A prefix in that text means nothing to a decoder
+unless Preserve.prefixes is on, which strict mode forbids, so only a name with
+no namespace can be read back; EXIficient refuses a prefixed one the same way.
+The name must also be one the string table knows, so the decoder can name the
+type. As rexi's `xsi_type_lexical_name`.
+"""
+function xsi_type_lexical_name(enc::Encoder, uri::AbstractString, local_name::AbstractString)
+    isempty(uri) || throw(UnsupportedError(FEATURE_PRESERVE_PREFIXES))
+    q = qname_id(enc.strings, "", local_name)
+    q === nothing && throw(ValueError("xsi:type", "with Preserve.lexicalValues, $local_name must be a name the schema uses"))
+    return q
 end
 
 """Writes `xsi:nil`; when true, the element switches to its TypeEmpty grammar."""
@@ -384,7 +409,12 @@ function xsi_nil!(enc::Encoder, nil::Bool)
     # The escape is the code just past the last production.
     emit_code!(enc, length(rule_productions(g, f.rule)), first_level_width(g, f))
     emit_code!(enc, code2, second_level_width(f))
-    write_bool!(enc.out, nil)
+    if enc.options.preserve.lexical_values
+        # Text with the Boolean set (Table 7-2), under the xsi:nil name.
+        write_value!(enc.strings, enc.out, XSI_NIL_QNAME, nil ? "true" : "false", LEX_BOOLEAN)
+    else
+        write_bool!(enc.out, nil)
+    end
     nil && set_top!(enc, nil_to(f, grammar_start_rule(g, gtype(g, f.type_idx).empty_grammar)))
     return enc
 end
@@ -470,7 +500,9 @@ function flush_chars!(enc::Encoder, before_end_tag::Bool)
         has_ch || return nothing
         prods = rule_productions(g, f.rule)
         typed_first = !isempty(prods) && prods[1].terminal.kind == T_CH
-        simple_data = enc.after_start_tag && before_end_tag
+        # With Preserve.lexicalValues, EXIficient keeps every text a CH can take
+        # (`checkPendingCharacters` skips its pruning).
+        simple_data = (enc.after_start_tag && before_end_tag) || enc.options.preserve.lexical_values
         (!typed_first && !simple_data && !space_preserved(enc)) && return nothing
     end
     encode_chars!(enc, Lexical(GC.@preserve buf unsafe_string(pointer(buf), n)))
@@ -503,11 +535,24 @@ function encode_chars!(enc::Encoder, value)
 end
 
 """
+Writes a value with Preserve.lexicalValues: its text as given (no whitespace
+facet), as a String with the restricted character set of its built-in type,
+through the string table (https://www.w3.org/TR/exi/#encodingDatatypes,
+Table 7-2). A typed value is written in its standard text form.
+"""
+function write_lexical_value!(enc::Encoder, kind::DatatypeKind, value, context::QNameId)
+    s = value isa Lexical ? value.text : value isa AbstractString ? value : format_value(kind, value, enc.tables)
+    write_value!(enc.strings, enc.out, context, s, lexical_alphabet(kind, enc.tables))
+    return nothing
+end
+
+"""
 Writes a value of `kind`. Strings go through the value string table with
 `context` (the element's or attribute's name); lists are walked item by item.
 Plain text given for a typed kind is parsed like XML text.
 """
 function write_typed_value!(enc::Encoder, kind::DatatypeKind, value, context::QNameId)
+    enc.options.preserve.lexical_values && return write_lexical_value!(enc, kind, value, context)
     if kind.tag == K_RESTRICTED_STRING
         # No alphabet (a pattern that did not parse): refused before the string
         # table is touched. See `K_RESTRICTED_STRING`.

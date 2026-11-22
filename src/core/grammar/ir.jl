@@ -333,6 +333,10 @@ const XML_LOCAL_NAMES = ("base", "id", "lang", "space")
 const XSI_LOCAL_NAMES = ("nil", "type")
 const XSI_NIL_LOCAL = LocalId(0)
 const XSI_TYPE_LOCAL = LocalId(1)
+# The names xsi:type and xsi:nil values are kept under in the value table
+# (Preserve.lexicalValues).
+const XSI_NIL_QNAME = QNameId(URI_XSI, XSI_NIL_LOCAL)
+const XSI_TYPE_QNAME = QNameId(URI_XSI, XSI_TYPE_LOCAL)
 
 const XSD_LOCAL_NAMES = (
     "ENTITIES", "ENTITY", "ID", "IDREF", "IDREFS", "NCName", "NMTOKEN", "NMTOKENS", "NOTATION",

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- `Preserve.lexicalValues` ([EXI 6.3](https://www.w3.org/TR/exi/#fidelityOptions)),
+  as in rexi with its `lexical-values` feature: every value is sent as its text,
+  with the restricted character set of its built-in type
+  ([EXI 7](https://www.w3.org/TR/exi/#encodingDatatypes), Table 7-2), so `1.50`
+  decodes as `1.50`. Text is not changed by the whitespace facet, whitespace
+  between elements is kept wherever a `CH` can take it, and `xsi:type` can name
+  only a type in no namespace (a prefixed one needs Preserve.prefixes, as in
+  EXIficient). The `exiformat` tool takes `--preserve lexicalValues`. The W3C
+  strict group run again with the option on (`scripts/w3c-strict.py
+  --lexical-values`): 173 of 219 give EXIficient's bytes and events, the same
+  cases as rexi.
 - Wildcards, as in rexi with its `wildcard` feature: `xs:any` and
   `xs:anyAttribute` in strict mode, `SE(*)`, `SE(uri:*)`, `AT(*)` and `AT(uri:*)`
   ([EXI 8.5.4.1.6](https://www.w3.org/TR/exi/#elementTerms)). An element follows
