@@ -157,7 +157,18 @@ function format_value(kind::DatatypeKind, value, types)
         s = enum_value(types, kind.set, value.ordinal)
         s === nothing &&
             throw(ValueError(kind_name(kind), "ordinal $(value.ordinal) out of range"))
-        return s
+        # The value in the standard form of its base type, as EXIficient gives
+        # it: a float listed as "1.0" comes out as "1E0"
+        # (https://www.w3.org/TR/exi/#encodingEnumerations). The same form
+        # `enum_ordinal` matches on. When the text does not parse as the base
+        # type, it comes out as the schema writes it.
+        item_kind = datatype(types, kind.item)
+        return try
+            format_value(item_kind, parse_lexical(item_kind, s, types), types)
+        catch err
+            err isa ExiError || rethrow()
+            String(s)
+        end
     end
     if value isa ExiList
         kind.tag == K_LIST || throw(mismatch(kind, value))

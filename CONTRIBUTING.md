@@ -2,9 +2,8 @@
 
 ## Status
 
-0.1.0 has the scope of rexi 0.2, plus rexi 0.3.1's handling of an `xsi:type`
-that names no type in the schema. rexi 0.3 also encodes schema-informed
-fragments; EXIFormat does not yet.
+EXIFormat has the scope of rexi 0.3.1: rexi 0.2's, plus the handling of an
+`xsi:type` that names no type in the schema, and schema-informed fragments.
 
 The interop fixtures (EXIficient 1.0.7 reference bytes) encode bit for bit in
 the strict bit-packed, bit-packed with options, and byte-aligned profiles. They
@@ -12,9 +11,11 @@ decode to EXIficient's event stream, re-encode from the decoded events, and are
 accepted by exipd, exip's decoder. The schema compiler makes the same tables as
 rexi for every fixture schema, and its EXIficient-format grammar dump equals
 EXIficient's. In the [rexi-interop](https://github.com/nhenehan/rexi-interop)
-matrix, EXIFormat matches rexi in every strict case. Wildcards are refused with
-`UnsupportedError(FEATURE_WILDCARD)`, and restricted strings whose pattern does
-not parse with `UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
+matrix, EXIFormat matches rexi in every strict case. Wildcards work as in rexi
+with its `wildcard` feature; a wildcard element with no global declaration is
+refused with `UnsupportedError(FEATURE_BUILT_IN_ELEMENT_GRAMMAR)`, and restricted
+strings whose pattern does not parse with
+`UnsupportedError(FEATURE_RESTRICTED_CHARACTER_SET)`.
 
 ## Layout
 
@@ -47,7 +48,7 @@ bin/exiformat dump-grammar --xsd a.xsd[,b.xsd]
 bin/exiformat bench encode|decode --xsd a.xsd [--warmup N --iterations N] in
 ```
 
-`bin/exiformat` takes rexi 0.2's command line (rexi 0.3 adds `--fragment`) and
+`bin/exiformat` takes rexi 0.3's command line (including `--fragment`) and
 prints the same `bench` JSON, which is how the
 [rexi-interop](https://github.com/nhenehan/rexi-interop) harness drives both.
 Speed notes are in the docs appendix ([`docs/src/appendix/performance.md`](docs/src/appendix/performance.md)).
@@ -101,10 +102,32 @@ event streams and grammar dumps, with their sha256 in `manifest.tsv`.
 `EXIFormat.grammar_listing` must reproduce exactly. Change them only with
 `scripts/sync-fixtures.sh` after moving the pin.
 
+## W3C strict group
+
+`scripts/w3c-strict.py` runs the W3C test suite's strict group
+(`config/testCases-interop/strict.xml`: schemaValidDatatypes and
+declaredProductions, 219 cases) from the cached exi-testsuite, with
+`bin/exiformat`. For each case, on bit-packed and byte-aligned, EXIficient (the
+oracle jar) makes the reference stream and its events; EXIFormat's encode must
+give the same bytes, its decode the same events, and decode then encode the same
+bytes again. It is the same file as rexi's `scripts/w3c-strict.py`: keep the two
+copies the same. It is not part of the gate, because it starts Julia for every
+step (about 6 minutes with 8 jobs).
+
+```bash
+scripts/w3c-strict.py --jobs 8               # compare with scripts/w3c-strict.expected
+scripts/w3c-strict.py --jobs 8 --lexical-values  # the same with Preserve.lexicalValues on
+scripts/w3c-strict.py --jobs 8 --update      # on purpose: accept the new results
+```
+
+The run fails when a result differs from `scripts/w3c-strict.expected`, both
+when a case stops passing and when one starts.
+
 ## Third parties
 
 Nothing third-party lives in the working tree. `scripts/fetch-third-party.sh`
 checks out the commits pinned in `third-party.lock` (exip for the exipd judge
-and the EXIficient oracle, rexi for the fixtures and its CLI) into
+and the EXIficient oracle, rexi for the fixtures and its CLI, exi-testsuite for
+`scripts/w3c-strict.py`) into
 `${EXIFORMAT_THIRD_PARTY:-${XDG_CACHE_HOME:-~/.cache}/exiformat/third_party}`.
 Julia dependencies: XML.jl and PrecompileTools; the tests also use Aqua and JET.

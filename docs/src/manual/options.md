@@ -40,3 +40,46 @@ way, such as in a protocol spec or a config file. The EXI spec calls this
 
 EXIFormat refuses options it does not support when you build the encoder, so you
 find out right away.
+
+## Fragments
+
+A normal EXI body holds one document with one root element. Set the `fragment`
+option (`strict_options(; fragment = true)`) to send a run of elements instead,
+such as tank level and flow readings with no wrapper around them
+([EXI 8.5.2](https://www.w3.org/TR/exi/#informedFragGrammars)). Each element may
+be any element the schema declares, even one that is only declared inside
+another element. `encode_xml` then takes XML with several root elements,
+`decode_to_xml` gives them back, and [`xml_fragment_events`](@ref
+EXIFormat.xml_fragment_events) reads such XML into events. The `exiformat`
+tool takes `--fragment` for the same thing.
+
+One case is refused: when two elements share a name but have different types
+(or differ in `nillable`), EXI would read that name at the top of a fragment
+with a looser grammar that EXIFormat does not build. Inside their parents those
+elements work as usual.
+
+## Exact values: `Preserve.lexicalValues`
+
+Normally a value is sent in its type's compact form, so it decodes to the
+type's standard text: `<price>1.50</price>` comes back as `1.5`, and `+05` as
+`5`. When the exact text matters, for a signature over the XML or an audit
+trail, turn on `Preserve.lexicalValues`
+([EXI 6.3](https://www.w3.org/TR/exi/#fidelityOptions)), the one Preserve option
+strict mode allows:
+
+```julia
+options = strict_options(; preserve = Preserve(; lexical_values = true))
+```
+
+Each value is then its text, written with a small alphabet chosen by its type
+(digits and signs for numbers, for example; EXI Table 7-2), and repeated values
+still go through the string table. The messages are a little larger than
+without the option. The text is kept as it is, spaces included, and so is
+whitespace between elements where the schema allows text. The `exiformat` tool
+takes `--preserve lexicalValues`.
+
+`xsi:type` is text as well, and a prefix in it would mean nothing to the
+decoder, since strict mode does not send namespace prefixes. So with this
+option `xsi:type` can only name a type in no namespace; `xsi:type="xs:int"` is
+refused with `UnsupportedError(FEATURE_PRESERVE_PREFIXES)`. EXIficient refuses
+it too.

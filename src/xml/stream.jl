@@ -321,16 +321,18 @@ function end_tag!(sink, scan::XmlScan, name::SubStr)
 end
 
 """
-    scan_xml!(sink, xml)
+    scan_xml!(sink, xml; fragment = false)
 
 Reads an XML document and gives its element events to `sink` (no SD or ED).
+With `fragment`, any number of root elements may follow each other, as an EXI
+fragment holds them (https://www.w3.org/TR/exi/#informedFragGrammars).
 """
-function scan_xml!(sink, xml::AbstractString, scan::XmlScan = XmlScan())
+function scan_xml!(sink, xml::AbstractString, scan::XmlScan = XmlScan(); fragment::Bool = false)
     whole = String(xml)::String
     # A leading byte-order mark (3 bytes in UTF-8) is not content.
     text = startswith(whole, '\ufeff') ? String(SubString(whole, 4))::String : whole
     try
-        scan_tokens!(sink, scan, text)
+        scan_tokens!(sink, scan, text, fragment)
     catch err
         # The tokenizer's own errors are ArgumentErrors with this prefix.
         if err isa ArgumentError && startswith(err.msg, "XML tokenizer error")
@@ -341,7 +343,7 @@ function scan_xml!(sink, xml::AbstractString, scan::XmlScan = XmlScan())
     return sink
 end
 
-function scan_tokens!(sink, scan::XmlScan, text::String)
+function scan_tokens!(sink, scan::XmlScan, text::String, fragment::Bool)
     roots = 0
     in_tag = false
     in_decl = false
@@ -360,7 +362,7 @@ function scan_tokens!(sink, scan::XmlScan, text::String)
             (isempty(tag) || !is_name_start(first(tag))) && throw(XmlSyntaxError("invalid element name \"$tag\""))
             if isempty(scan.tags)
                 roots += 1
-                roots > 1 && throw(XmlSyntaxError("more than one root element"))
+                roots > 1 && !fragment && throw(XmlSyntaxError("more than one root element"))
             end
             in_tag = true
         elseif k == TK.ATTR_NAME
@@ -400,7 +402,7 @@ function scan_tokens!(sink, scan::XmlScan, text::String)
     in_tag && throw(XmlSyntaxError("unterminated start tag <$tag"))
     isempty(scan.tags) || throw(XmlSyntaxError("unclosed elements: $(join(scan.tags, ", "))"))
     flush_text!(sink, scan)
-    roots == 0 && throw(XmlSyntaxError("no root element"))
+    roots == 0 && !fragment && throw(XmlSyntaxError("no root element"))
     return nothing
 end
 

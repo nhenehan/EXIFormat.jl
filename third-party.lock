@@ -10,6 +10,9 @@
 # rexi: the Rust implementation EXIFormat is ported from. Source of the interop
 #   fixtures (EXIficient 1.0.7 bytes; scripts/sync-fixtures.sh) and of the
 #   `rexi dump-grammar` listings the schema compiler is compared with.
+# exi-testsuite: the W3C EXI test suite, for scripts/w3c-strict.py (the same
+#   pin as rexi's).
 
-exip https://github.com/nhenehan/exip.git b2870c106f0cc88fd199208f724ce575df150444
-rexi https://github.com/nhenehan/rexi.git v0.2.0
+exip https://github.com/nhenehan/exip.git fd43178f32d480535b08861d07700d106a3f31d7
+rexi https://github.com/nhenehan/rexi.git v0.3.1
+exi-testsuite https://github.com/w3c/exi-testsuite.git 23d5f587ba3ec281f1a6a8182c1450cb870b469e

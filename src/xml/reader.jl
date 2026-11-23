@@ -27,6 +27,21 @@ function xml_events(xml::AbstractString)
     return sink.out
 end
 
+"""
+    xml_fragment_events(xml) -> Vector{Event}
+
+Like [`xml_events`](@ref), for an XML fragment: zero or more root elements in a
+row, as an EXI fragment holds them
+(https://www.w3.org/TR/exi/#informedFragGrammars). Encode the events with the
+`fragment` option set.
+"""
+function xml_fragment_events(xml::AbstractString)
+    sink = EventSink(Event[StartDocument()])
+    scan_xml!(sink, xml; fragment = true)
+    push!(sink.out, EndDocument())
+    return sink.out
+end
+
 # The encoder is a sink too: the document goes straight in, with no events in
 # between.
 sink_start!(enc::Encoder, uri::SubStr, l::SubStr) = (start_element!(enc, uri, l); nothing)
@@ -36,10 +51,13 @@ sink_attr!(enc::Encoder, uri::SubStr, l::SubStr, v::SubStr) = (attribute!(enc, u
 sink_text!(enc::Encoder, buf::Vector{UInt8}, n::Int) = (pend_text!(enc, buf, n); nothing)
 sink_end!(enc::Encoder) = (end_element!(enc); nothing)
 
-"""Encodes the events of an XML document with `enc`."""
+"""
+Encodes the events of an XML document with `enc`. When `enc`'s options ask for a
+fragment, `xml` may hold any number of root elements.
+"""
 function push_xml!(enc::Encoder, xml::AbstractString)
     start_document!(enc)
-    scan_xml!(enc, xml)
+    scan_xml!(enc, xml; fragment = enc.options.fragment)
     end_document!(enc)
     return enc
 end

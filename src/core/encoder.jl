@@ -142,9 +142,19 @@ function start_document!(enc::Encoder)
     return enc
 end
 
-"""Writes `ED`, the end of the document, after the root element has ended."""
+"""Writes `ED`, the end of the document, after the root element has ended (for a
+fragment: after the last root element, or with none)."""
 function end_document!(enc::Encoder)
     flush_chars!(enc, false)
+    if enc.options.fragment
+        # FragmentContent : ... SE(*) ED, so ED is code n + 1
+        # (https://www.w3.org/TR/exi/#informedFragGrammars).
+        (enc.cursor == CUR_DOC_CONTENT && isempty(enc.frames)) || throw(mismatch(enc, "ED"))
+        n = length(fragment_entries(enc.tables))
+        emit_code!(enc, n + 1, ceil_log2(n + 2))
+        enc.cursor = CUR_DONE
+        return enc
+    end
     enc.cursor == CUR_DOC_END || throw(mismatch(enc, "ED"))
     enc.cursor = CUR_DONE
     return enc
@@ -168,6 +178,7 @@ function start_element_resolved!(enc::Encoder, q::Union{Nothing,QNameId}, uri, l
     g = enc.tables
     if isempty(enc.frames)
         enc.cursor == CUR_DOC_CONTENT || throw(mismatch(enc, "SE"))
+        enc.options.fragment && return start_fragment_element!(enc, q)
         # DocContent : SE(G_0) ... SE(G_n-1) SE(*)
         # (https://www.w3.org/TR/exi/#informedDocGrammars). The root's code is its
         # place among the sorted global elements; any other root would need SE(*)
@@ -185,13 +196,30 @@ function start_element_resolved!(enc::Encoder, q::Union{Nothing,QNameId}, uri, l
             find_prod(t -> t.kind == T_SE && (@inbounds elem_frames[Int(t.a) + 1]).context == q, enc, f.rule)
     if found === nothing
         wildcard = find_prod(t -> t.kind == T_SE_ANY || t.kind == T_SE_NS, enc, f.rule)
-        wildcard === nothing || throw(UnsupportedError(FEATURE_WILDCARD))
+        wildcard === nothing || return start_wildcard_element!(enc, f, q, uri, local_name)
         throw(mismatch(enc, "SE($(name_text(enc, q, uri, local_name)))"))
     end
     code, prod = found
     emit_code!(enc, code, fl_width(enc, f))
     set_top!(enc, with_rule(f, prod.next))
     push_element!(enc, prod.terminal.a)
+    return enc
+end
+
+"""
+Writes `SE(F_i)` at a fragment's top level: the code is the name's place in the
+sorted list of all element names
+(https://www.w3.org/TR/exi/#informedFragGrammars).
+"""
+function start_fragment_element!(enc::Encoder, q::Union{Nothing,QNameId})
+    entries = fragment_entries(enc.tables)
+    # A name the schema does not declare would need SE(*) and a built-in grammar.
+    pos = q === nothing ? nothing : findfirst(e -> e.qname == q, entries)
+    pos === nothing && throw(UnsupportedError(FEATURE_BUILT_IN_ELEMENT_GRAMMAR))
+    e = entries[pos]
+    e.elem == NONE && throw(UnsupportedError(FEATURE_RELAXED_ELEMENT_GRAMMAR))
+    emit_code!(enc, pos - 1, ceil_log2(length(entries) + 2))
+    push_element!(enc, e.elem)
     return enc
 end
 
@@ -222,13 +250,95 @@ function attribute_resolved!(enc::Encoder, q::Union{Nothing,QNameId}, uri, local
     found = q === nothing ? nothing : find_prod(t -> t.kind == T_AT && term_qname(t) == q, enc, f.rule)
     if found === nothing
         wildcard = find_prod(t -> t.kind == T_AT_ANY || t.kind == T_AT_NS, enc, f.rule)
-        wildcard === nothing || throw(UnsupportedError(FEATURE_WILDCARD))
+        wildcard === nothing || return wildcard_attribute!(enc, f, q, uri, local_name, xml_space, value)
         throw(mismatch(enc, "AT($(name_text(enc, q, uri, local_name)))"))
     end
     code, prod = found
     emit_code!(enc, code, fl_width(enc, f))
     write_typed_value!(enc, kind_of(enc, term_type(prod.terminal)), value, term_qname(prod.terminal))
     f = with_rule(f, prod.next)
+    if xml_space
+        text = value isa Lexical ? value.text : value isa AbstractString ? value : nothing
+        f = with_space(f, text === nothing ? Int8(-1) : Int8(strip(text) == "preserve"))
+    end
+    set_top!(enc, f)
+    return enc
+end
+
+# Wildcards (https://www.w3.org/TR/exi/#elementTerms): SE(*), SE(uri:*),
+# AT(*) and AT(uri:*) in strict mode, as in rexi with its `wildcard` feature.
+
+"""The name as `(uri, local)` text: as given, or the tables' text for `q`."""
+function name_strings(enc::Encoder, q, uri, local_name)
+    uri !== nothing && return (String(uri), String(local_name))
+    q === nothing && return ("", "")
+    return (something(uri_str(enc.tables, q.uri), ""), something(local_name_str(enc.tables, q), ""))
+end
+
+"""
+The first wildcard production of `rule` that takes a name in namespace `uri`:
+`SE(uri:*)` / `SE(*)`, or `AT(uri:*)` / `AT(*)` for an attribute. Productions are
+in event-code order, so a `uri:*` that matches comes before `*`.
+"""
+function find_wildcard(enc::Encoder, rule::RuleIdx, uri::AbstractString, attribute::Bool)
+    g = enc.tables
+    i = findfirst(e -> gstring(g, e.uri) == uri, g.uris)
+    uri_id = i === nothing ? nothing : UInt32(i - 1)
+    any_kind, ns_kind = attribute ? (T_AT_ANY, T_AT_NS) : (T_SE_ANY, T_SE_NS)
+    return find_prod(t -> t.kind == any_kind || (t.kind == ns_kind && t.a == uri_id), enc, rule)
+end
+
+"""
+Writes the name a wildcard production matched: the whole QName after `SE(*)` /
+`AT(*)`, only the local name after `SE(uri:*)` / `AT(uri:*)`, where the URI is
+known (https://www.w3.org/TR/exi/#encodingQName).
+"""
+function write_wildcard_name!(enc::Encoder, t::Terminal, uri::AbstractString, local_name::AbstractString)
+    if t.kind == T_SE_NS || t.kind == T_AT_NS
+        return QNameId(t.a, write_local_name!(enc.strings, enc.out, t.a, local_name))
+    end
+    return write_qname!(enc.strings, enc.out, uri, local_name)
+end
+
+"""
+`SE(*)` or `SE(uri:*)` inside an element: the event code, the name, then the
+element goes on with its global declaration's grammar, as EXIficient does. An
+element with no global declaration would need a built-in grammar, which is
+refused before anything is written.
+"""
+function start_wildcard_element!(enc::Encoder, f::Frame, q, uri, local_name)
+    u, l = name_strings(enc, q, uri, local_name)
+    found = find_wildcard(enc, f.rule, u, false)
+    found === nothing && throw(mismatch(enc, "SE($(qname_text(u, l)))"))
+    gq = lookup_qname(enc.rt, u, l)
+    elem = gq === nothing ? nothing : find_global_element(enc.tables, gq)
+    elem === nothing && throw(UnsupportedError(FEATURE_BUILT_IN_ELEMENT_GRAMMAR))
+    code, prod = found
+    emit_code!(enc, code, fl_width(enc, f))
+    write_wildcard_name!(enc, prod.terminal, u, l)
+    set_top!(enc, with_rule(f, prod.next))
+    push_element!(enc, elem)
+    return enc
+end
+
+"""
+`AT(*)` or `AT(uri:*)`: the event code, the name, then the value in the type of
+the attribute's global declaration, or as a string when there is none, as
+EXIficient does.
+"""
+function wildcard_attribute!(enc::Encoder, f::Frame, q, uri, local_name, xml_space::Bool, value)
+    u, l = name_strings(enc, q, uri, local_name)
+    found = find_wildcard(enc, f.rule, u, true)
+    found === nothing && throw(mismatch(enc, "AT($(qname_text(u, l)))"))
+    g = enc.tables
+    gq = lookup_qname(enc.rt, u, l)
+    i = gq === nothing ? nothing : findfirst(a -> a.qname == gq, g.global_attributes)
+    kind = i === nothing ? UNTYPED_KIND : kind_of(enc, g.global_attributes[i].type_idx)
+    code, prod = found
+    emit_code!(enc, code, fl_width(enc, f))
+    wq = write_wildcard_name!(enc, prod.terminal, u, l)
+    write_typed_value!(enc, kind, value, wq)
+    f = with_rule(f, after_attribute_wildcard(f, prod.next))
     if xml_space
         text = value isa Lexical ? value.text : value isa AbstractString ? value : nothing
         f = with_space(f, text === nothing ? Int8(-1) : Int8(strip(text) == "preserve"))
@@ -255,13 +365,38 @@ function xsi_type!(enc::Encoder, uri::AbstractString, local_name::AbstractString
     code2 = xsi_type_code(f)
     code2 === nothing && throw(mismatch(enc, "AT(xsi:type)"))
     # The escape is the code just past the last production.
+    # Checked before any bits are written.
+    lexical = enc.options.preserve.lexical_values
+    lq = lexical ? xsi_type_lexical_name(enc, uri, local_name) : nothing
     emit_code!(enc, length(rule_productions(g, f.rule)), first_level_width(g, f))
     emit_code!(enc, code2, second_level_width(f))
-    q = write_qname!(enc.strings, enc.out, uri, local_name)
+    q = if lq === nothing
+        write_qname!(enc.strings, enc.out, uri, local_name)
+    else
+        # The value is the type's name as text, a plain String.
+        write_value!(enc.strings, enc.out, XSI_TYPE_QNAME, local_name)
+        lq
+    end
     t = find_type(g, q)
     t === nothing && return enc  # no such type: keep the grammar
     set_top!(enc, cast_to(f, grammar_start_rule(g, gtype(g, t).grammar), t))
     return enc
+end
+
+"""
+With Preserve.lexicalValues, `xsi:type` is a String, the type's name as written
+(https://www.w3.org/TR/exi/#encodingDatatypes, Table 7-1: QName is used only
+when the option is off). A prefix in that text means nothing to a decoder
+unless Preserve.prefixes is on, which strict mode forbids, so only a name with
+no namespace can be read back; EXIficient refuses a prefixed one the same way.
+The name must also be one the string table knows, so the decoder can name the
+type. As rexi's `xsi_type_lexical_name`.
+"""
+function xsi_type_lexical_name(enc::Encoder, uri::AbstractString, local_name::AbstractString)
+    isempty(uri) || throw(UnsupportedError(FEATURE_PRESERVE_PREFIXES))
+    q = qname_id(enc.strings, "", local_name)
+    q === nothing && throw(ValueError("xsi:type", "with Preserve.lexicalValues, $local_name must be a name the schema uses"))
+    return q
 end
 
 """Writes `xsi:nil`; when true, the element switches to its TypeEmpty grammar."""
@@ -274,7 +409,12 @@ function xsi_nil!(enc::Encoder, nil::Bool)
     # The escape is the code just past the last production.
     emit_code!(enc, length(rule_productions(g, f.rule)), first_level_width(g, f))
     emit_code!(enc, code2, second_level_width(f))
-    write_bool!(enc.out, nil)
+    if enc.options.preserve.lexical_values
+        # Text with the Boolean set (Table 7-2), under the xsi:nil name.
+        write_value!(enc.strings, enc.out, XSI_NIL_QNAME, nil ? "true" : "false", LEX_BOOLEAN)
+    else
+        write_bool!(enc.out, nil)
+    end
     nil && set_top!(enc, nil_to(f, grammar_start_rule(g, gtype(g, f.type_idx).empty_grammar)))
     return enc
 end
@@ -328,7 +468,8 @@ function end_element!(enc::Encoder)
     emit_code!(enc, found[1], fl_width(enc, f))
     pop!(enc.frames)
     enc.after_start_tag = false
-    isempty(enc.frames) && (enc.cursor = CUR_DOC_END)
+    # A fragment goes back to FragmentContent for the next element.
+    isempty(enc.frames) && !enc.options.fragment && (enc.cursor = CUR_DOC_END)
     return enc
 end
 
@@ -359,7 +500,9 @@ function flush_chars!(enc::Encoder, before_end_tag::Bool)
         has_ch || return nothing
         prods = rule_productions(g, f.rule)
         typed_first = !isempty(prods) && prods[1].terminal.kind == T_CH
-        simple_data = enc.after_start_tag && before_end_tag
+        # With Preserve.lexicalValues, EXIficient keeps every text a CH can take
+        # (`checkPendingCharacters` skips its pruning).
+        simple_data = (enc.after_start_tag && before_end_tag) || enc.options.preserve.lexical_values
         (!typed_first && !simple_data && !space_preserved(enc)) && return nothing
     end
     encode_chars!(enc, Lexical(GC.@preserve buf unsafe_string(pointer(buf), n)))
@@ -392,11 +535,24 @@ function encode_chars!(enc::Encoder, value)
 end
 
 """
+Writes a value with Preserve.lexicalValues: its text as given (no whitespace
+facet), as a String with the restricted character set of its built-in type,
+through the string table (https://www.w3.org/TR/exi/#encodingDatatypes,
+Table 7-2). A typed value is written in its standard text form.
+"""
+function write_lexical_value!(enc::Encoder, kind::DatatypeKind, value, context::QNameId)
+    s = value isa Lexical ? value.text : value isa AbstractString ? value : format_value(kind, value, enc.tables)
+    write_value!(enc.strings, enc.out, context, s, lexical_alphabet(kind, enc.tables))
+    return nothing
+end
+
+"""
 Writes a value of `kind`. Strings go through the value string table with
 `context` (the element's or attribute's name); lists are walked item by item.
 Plain text given for a typed kind is parsed like XML text.
 """
 function write_typed_value!(enc::Encoder, kind::DatatypeKind, value, context::QNameId)
+    enc.options.preserve.lexical_values && return write_lexical_value!(enc, kind, value, context)
     if kind.tag == K_RESTRICTED_STRING
         # No alphabet (a pattern that did not parse): refused before the string
         # table is touched. See `K_RESTRICTED_STRING`.

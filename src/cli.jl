@@ -26,6 +26,8 @@ options (encode: header contents; decode/dump-events: out-of-band options used w
 the stream carries none):
   --strict | --no-strict            strict schema-informed mode (default: strict)
   --alignment bit-packed|byte-aligned
+  --fragment                        the body is a fragment: any number of root elements
+  --preserve lexicalValues          keep each value's exact text
   --include-options                 write the EXI options document into the header
   --cookie                          write the \$EXI cookie
   --schema-id ID | --schema-id-nil  schemaId option (default: absent); --schema-id also
@@ -67,6 +69,8 @@ Base.@kwdef mutable struct Args
     schema_root::Union{Nothing,String} = nothing
     strict::Union{Nothing,Bool} = nothing
     alignment::J.Alignment = J.ALIGN_BIT_PACKED
+    fragment::Bool = false
+    lexical_values::Bool = false
     include_options::Bool = false
     cookie::Bool = false
     schema_id::Union{Nothing,J.SchemaIdNil,String} = nothing
@@ -116,6 +120,13 @@ function parse_args(argv::Vector{String})
             a.strict = true
         elseif arg == "--no-strict"
             a.strict = false
+        elseif arg == "--fragment"
+            a.fragment = true
+        elseif arg == "--preserve"
+            v = value_of(arg)
+            v == "lexicalValues" ||
+                throw(UsageError("--preserve: only lexicalValues is allowed in strict mode, got $(repr(v))"))
+            a.lexical_values = true
         elseif arg == "--alignment"
             v = value_of(arg)
             a.alignment = v == "bit-packed" ? J.ALIGN_BIT_PACKED : v == "byte-aligned" ? J.ALIGN_BYTE_ALIGNED :
@@ -171,7 +182,8 @@ end
 function options_of(a::Args)
     a.strict == false &&
         throw(UsageError("--no-strict: non-strict (schema-informed with deviations) encoding is not supported yet"))
-    return J.strict_options(; alignment = a.alignment, value_max_length = a.value_max_length,
+    return J.strict_options(; alignment = a.alignment, fragment = a.fragment,
+        preserve = J.Preserve(; lexical_values = a.lexical_values), value_max_length = a.value_max_length,
         value_partition_capacity = a.value_partition_capacity, schema_id = a.schema_id)
 end
 
@@ -289,7 +301,7 @@ function bench(a::Args, out::IO)
         out_path = a.out
         out_path === nothing || write(out_path, encoded)
         ns = if a.from_events
-            xml_evs = J.xml_events(xml)
+            xml_evs = opts.fragment ? J.xml_fragment_events(xml) : J.xml_events(xml)
             time_runs(a.warmup, a.warmup_ms, a.iterations) do
                 enc = J.Encoder(tables, opts; header)
                 for ev in xml_evs

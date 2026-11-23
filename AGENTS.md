@@ -2,7 +2,7 @@
 
 ## About this project
 
-EXIFormat is an implementation of W3C Efficient XML Interchange (EXI) 1.0 in native Julia. It is a port of [rexi](https://github.com/nhenehan/rexi), the Rust implementation, and must write the same bytes. It was called JExi up to JExi 0.2.0; numbering started again at 0.1.0 as EXIFormat. JExi's tag `v0.2.0` stays (mod_jl and rexi-interop pin it), so EXIFormat's next minor release must be 0.3.0 unless those pins move first.
+EXIFormat is an implementation of W3C Efficient XML Interchange (EXI) 1.0 in native Julia. It is a port of [rexi](https://github.com/nhenehan/rexi), the Rust implementation, and must write the same bytes. It was called JExi up to JExi 0.2.0; numbering started again at 0.1.0 as EXIFormat, and JExi's old tags are deleted.
 
 It encodes and decodes XML using schema-informed, strict EXI. Both communicating ends must use compatible schema grammars and EXI options.
 
@@ -46,7 +46,7 @@ Use `Encoder` (push: `start_document!`, `start_element!`, `attribute!`, `charact
 
 ## EXI rules
 
-The implemented profile is EXI 1.0 (Second Edition), schema-informed and strict, for documents only.
+The implemented profile is EXI 1.0 (Second Edition), schema-informed and strict, for documents and fragments.
 
 Supported:
 
@@ -55,12 +55,15 @@ Supported:
 - Options in the header or agreed out of band.
 - Restricted character sets whose `xs:pattern` can be parsed.
 - An `xsi:type` that names no type in the schema: written, and the element keeps its grammar (as EXIficient and rexi 0.3.1 do).
+- Schema-informed fragments (`fragment = true`, as rexi 0.3.1): any number of root elements, each any element the schema declares, global or local.
+- Wildcards (`xs:any`, `xs:anyAttribute`), as rexi with its `wildcard` feature: an element needs a global declaration; an attribute takes its global declaration's type, or is a string.
+- `Preserve.lexicalValues`, as rexi with its `lexical-values` feature: values as text with the character sets of EXI Table 7-2; `xsi:type` only in no namespace.
 
-Refused with `UnsupportedError` (`src/core/errors.jl`, `validate_options` in `src/core/options.jl`): compression and pre-compression, fragments, wildcards (`xs:any`, `xs:anyAttribute`), schema-less streams (built-in grammars), non-strict mode, the Preserve options, selfContained, datatypeRepresentationMap, and restricted strings whose pattern does not parse.
+Refused with `UnsupportedError` (`src/core/errors.jl`, `validate_options` in `src/core/options.jl`): compression and pre-compression, a fragment-level name declared twice with different types or `nillable` (relaxed element grammars), schema-less streams and elements with no declaration (built-in grammars), non-strict mode, the Preserve options other than lexicalValues, selfContained, datatypeRepresentationMap, and restricted strings whose pattern does not parse.
 
 Both ends must agree on the schema and the options. Do not silently substitute a different encoding for an unsupported feature. Do not assume that a schema that compiles can encode every document that uses it: the refusal comes when a document reaches the unsupported part.
 
-Report only what the tests show. EXIFormat does not run the W3C EXI test suite; rexi runs its declaredProductions group.
+Report only what the tests show. Of the W3C EXI test suite, EXIFormat runs only the strict group (`scripts/w3c-strict.py`, expected results in `scripts/w3c-strict.expected`), the same script as rexi's.
 
 ## Allocations and type stability
 

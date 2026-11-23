@@ -1,5 +1,46 @@
 # Changelog
 
+## Unreleased
+
+- `Preserve.lexicalValues` ([EXI 6.3](https://www.w3.org/TR/exi/#fidelityOptions)),
+  as in rexi with its `lexical-values` feature: every value is sent as its text,
+  with the restricted character set of its built-in type
+  ([EXI 7](https://www.w3.org/TR/exi/#encodingDatatypes), Table 7-2), so `1.50`
+  decodes as `1.50`. Text is not changed by the whitespace facet, whitespace
+  between elements is kept wherever a `CH` can take it, and `xsi:type` can name
+  only a type in no namespace (a prefixed one needs Preserve.prefixes, as in
+  EXIficient). The `exiformat` tool takes `--preserve lexicalValues`. The W3C
+  strict group run again with the option on (`scripts/w3c-strict.py
+  --lexical-values`): 173 of 219 give EXIficient's bytes and events, the same
+  cases as rexi.
+- Wildcards, as in rexi with its `wildcard` feature: `xs:any` and
+  `xs:anyAttribute` in strict mode, `SE(*)`, `SE(uri:*)`, `AT(*)` and `AT(uri:*)`
+  ([EXI 8.5.4.1.6](https://www.w3.org/TR/exi/#elementTerms)). An element follows
+  its global declaration's grammar; one with no declaration still needs a
+  built-in grammar and is refused. An attribute takes its global declaration's
+  type, or is a string. The W3C wildcard cases give EXIficient's bytes and events
+  (16 of 17): 177 of 219 in all, the same cases as rexi.
+- Schema-informed fragments ([EXI 8.5.2](https://www.w3.org/TR/exi/#informedFragGrammars)),
+  as in rexi 0.3.1: set the `fragment` option (`strict_options(; fragment = true)`)
+  to encode and decode a run of root elements, each one any element the schema
+  declares, global or local. `encode_xml` reads several roots when the option is
+  set, `xml_fragment_events` reads a fragment into events, and `bin/exiformat`
+  takes `--fragment`. A name declared twice with different types or `nillable`
+  needs EXI's relaxed element grammar, which EXIFormat refuses with the new
+  `FEATURE_RELAXED_ELEMENT_GRAMMAR`. The same bits as rexi, on rexi's tests and
+  rexi-interop's case F1.
+- A decoded enumeration value comes out in the standard form of its base
+  type, as EXIficient and rexi give it: a float the schema lists as `1.0`
+  decodes as `1E0`, not `1.0`
+  ([EXI 7.2](https://www.w3.org/TR/exi/#encodingEnumerations) says only that the
+  value is an index). The bytes do not change. Found by the W3C case
+  enumeration.valid-02.
+- For developers: `scripts/w3c-strict.py` (the same script as rexi's) runs the
+  W3C test suite's strict group, 219 cases, against `bin/exiformat`, compared
+  with EXIficient 1.0.7: 161 the same, the same cases as rexi. exi-testsuite is
+  now pinned in `third-party.lock`, and exip moves to `fd43178` (its oracle has
+  `--fragment`).
+
 ## 0.1.0
 
 The first release as EXIFormat, and the first in Julia's General registry. The

@@ -2,3 +2,4 @@ Manifest.toml
 Manifest-v*.toml
 /test/work/
 /CR.md
+/.w3c-strict/

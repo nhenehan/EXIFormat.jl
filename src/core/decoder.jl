@@ -132,6 +132,7 @@ function next!(dec::Decoder)
     end
     g = dec.tables
     if isempty(dec.frames)
+        dec.options.fragment && return step_fragment_content!(dec)
         # DocContent : SE(G_0) ... SE(G_n-1) SE(*). A code of n or more is SE(*),
         # which would need a built-in grammar.
         n = length(g.global_elements)
@@ -172,19 +173,89 @@ function next!(dec::Decoder)
         return EV_CH
     elseif k == T_EE
         pop!(dec.frames)
-        isempty(dec.frames) && (dec.cursor = CUR_DOC_END)
+        # A fragment goes back to FragmentContent for the next element.
+        isempty(dec.frames) && !dec.options.fragment && (dec.cursor = CUR_DOC_END)
         return EV_EE
-    elseif k == T_SE_ANY || k == T_SE_NS || k == T_AT_ANY || k == T_AT_NS || k == T_AT_ANY_UNTYPED
+    elseif k == T_SE_ANY || k == T_SE_NS
+        return wildcard_element!(dec, f, prod)
+    elseif k == T_AT_ANY || k == T_AT_NS
+        return wildcard_attribute!(dec, f, prod)
+    elseif k == T_AT_ANY_UNTYPED
+        # AT(*) with an untyped value appears only in non-strict grammars.
         throw(UnsupportedError(FEATURE_WILDCARD))
     end
     throw(GrammarError("a strict schema-informed production", string(k)))
+end
+
+"""
+Reads one code of a fragment's top level,
+`FragmentContent : SE(F_0) ... SE(F_n-1) SE(*) ED`
+(https://www.w3.org/TR/exi/#informedFragGrammars): codes `0` to `n - 1` start an
+element, `n` is `SE(*)` and `n + 1` is `ED`.
+"""
+@noinline function step_fragment_content!(dec::Decoder)
+    entries = fragment_entries(dec.tables)
+    n = length(entries)
+    code = Int(read_nbit_unsigned!(dec.inp, ceil_log2(n + 2)))
+    if code == n + 1
+        dec.cursor = CUR_DONE
+        return EV_ED
+    end
+    code == n && throw(UnsupportedError(FEATURE_BUILT_IN_ELEMENT_GRAMMAR))
+    code > n + 1 && throw(GrammarError("fragment event code <= $(n + 1)", "$code at bit $(bit_position(dec.inp))"))
+    e = entries[code + 1]
+    e.elem == NONE && throw(UnsupportedError(FEATURE_RELAXED_ELEMENT_GRAMMAR))
+    push_element!(dec, e.elem)
+    return EV_SE
+end
+
+"""
+Reads the name after a wildcard production: the whole QName after `SE(*)` /
+`AT(*)`, only the local name after `SE(uri:*)` / `AT(uri:*)`
+(https://www.w3.org/TR/exi/#encodingQName).
+"""
+function read_wildcard_name!(dec::Decoder, t::Terminal)
+    (t.kind == T_SE_NS || t.kind == T_AT_NS) && return QNameId(t.a, read_local_name!(dec.strings, dec.inp, t.a))
+    return read_qname!(dec.strings, dec.inp)
+end
+
+"""
+`SE(*)` or `SE(uri:*)` (https://www.w3.org/TR/exi/#elementTerms): the name, then
+the element's global declaration's grammar, as EXIficient does. A name with no
+global declaration would need a built-in grammar.
+"""
+@noinline function wildcard_element!(dec::Decoder, f::Frame, prod::Production)
+    q = read_wildcard_name!(dec, prod.terminal)
+    elem = find_global_element(dec.tables, q)
+    elem === nothing && throw(UnsupportedError(FEATURE_BUILT_IN_ELEMENT_GRAMMAR))
+    set_top!(dec, with_rule(f, prod.next))
+    push_element!(dec, elem)
+    dec.qname = q
+    return EV_SE
+end
+
+"""
+`AT(*)` or `AT(uri:*)` (https://www.w3.org/TR/exi/#elementTerms): the name, then
+the value in the type of the attribute's global declaration, or as a string when
+there is none, as EXIficient does.
+"""
+@noinline function wildcard_attribute!(dec::Decoder, f::Frame, prod::Production)
+    q = read_wildcard_name!(dec, prod.terminal)
+    g = dec.tables
+    i = findfirst(a -> a.qname == q, g.global_attributes)
+    kind = i === nothing ? UNTYPED_KIND : dec.rt.kinds[Int(g.global_attributes[i].type_idx) + 1]
+    dec.last_kind = kind
+    dec.qname = q
+    dec.value = read_typed_value!(dec, kind, q)
+    set_top!(dec, with_rule(f, after_attribute_wildcard(f, prod.next)))
+    return EV_AT
 end
 
 function step_escape!(dec::Decoder, f::Frame)
     g = dec.tables
     code2 = Int(read_nbit_unsigned!(dec.inp, second_level_width(f)))
     if code2 == xsi_type_code(f)
-        q = read_qname!(dec.strings, dec.inp)
+        q = dec.options.preserve.lexical_values ? read_xsi_type_text!(dec) : read_qname!(dec.strings, dec.inp)
         t = find_type(g, q)
         # No such type: keep the grammar, as the encoder does. Otherwise there
         # are no escapes after a cast: see `xsi_type!` of the encoder.
@@ -192,7 +263,13 @@ function step_escape!(dec::Decoder, f::Frame)
         dec.qname = q
         return EV_XSI_TYPE
     elseif code2 == xsi_nil_code(f)
-        nil = read_bool!(dec.inp)
+        nil = if dec.options.preserve.lexical_values
+            b = parse_boolean(read_value!(dec.strings, dec.inp, XSI_NIL_QNAME, LEX_BOOLEAN))
+            b === nothing && throw(ValueError("xsi:nil", "not a boolean"))
+            b
+        else
+            read_bool!(dec.inp)
+        end
         nil && set_top!(dec, nil_to(f, grammar_start_rule(g, gtype(g, f.type_idx).empty_grammar)))
         dec.nil = nil
         return EV_XSI_NIL
@@ -200,7 +277,26 @@ function step_escape!(dec::Decoder, f::Frame)
     throw(GrammarError("xsi:type or xsi:nil escape", "second-level code $code2"))
 end
 
+"""
+Reads an `xsi:type` written as text (Preserve.lexicalValues; see the encoder's
+`xsi_type_lexical_name`): a name with no prefix, in no namespace.
+"""
+function read_xsi_type_text!(dec::Decoder)
+    s = read_value!(dec.strings, dec.inp, XSI_TYPE_QNAME)
+    # A prefix, and no way to know its namespace in strict mode.
+    occursin(':', s) && throw(UnsupportedError(FEATURE_PRESERVE_PREFIXES))
+    q = qname_id(dec.strings, "", s)
+    q === nothing && throw(ValueError("xsi:type", "$s is not a name the schema uses"))
+    return q
+end
+
 function read_typed_value!(dec::Decoder, kind::DatatypeKind, context::QNameId)
+    if dec.options.preserve.lexical_values
+        s = read_value!(dec.strings, dec.inp, context, lexical_alphabet(kind, dec.tables))
+        dec.string_bytes += ncodeunits(s)
+        dec.string_bytes > dec.max_string_bytes && throw(LimitError(:string_bytes, dec.max_string_bytes))
+        return s
+    end
     restricted = kind.tag == K_RESTRICTED_STRING
     # No alphabet (a pattern that did not parse): refused before the string
     # table is touched. See `K_RESTRICTED_STRING`.
