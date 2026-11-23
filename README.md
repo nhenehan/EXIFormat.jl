@@ -5,6 +5,7 @@
 [![docs-stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://nhenehan.github.io/EXIFormat.jl/stable)
 [![docs-dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://nhenehan.github.io/EXIFormat.jl/dev)
 [![CI](https://github.com/nhenehan/EXIFormat.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/nhenehan/EXIFormat.jl/actions/workflows/CI.yml)
+[![codecov](https://codecov.io/gh/nhenehan/EXIFormat.jl/graph/badge.svg)](https://codecov.io/gh/nhenehan/EXIFormat.jl)
 
 EXIFormat turns XML into small, fast binary messages and back. The format is EXI,
 a W3C standard. You give EXIFormat your XML Schema. Both ends use it to agree on
